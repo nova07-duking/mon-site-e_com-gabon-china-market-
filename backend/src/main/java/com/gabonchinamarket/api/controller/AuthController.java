@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -127,28 +128,47 @@ public class AuthController {
         user.setRoles(roles);
         user.setCreatedAt(LocalDateTime.now());
         
-        // Configuration de la vérification email
-        String vCode = UUID.randomUUID().toString();
-        user.setVerificationCode(vCode);
+        // Configuration de la vérification OTP (6 chiffres)
+        String otpCode = String.format("%06d", new Random().nextInt(1000000));
+        user.setVerificationCode(otpCode);
         user.setEnabled(false); // Le compte est désactivé jusqu'à la vérification
         
         userRepository.save(user);
 
         // Envoi du mail
         try {
-            // URL de vérification dynamique
-            String verifyUrl = backendUrl + "/api/auth/verify?code=" + vCode;
             String message = "Bonjour " + user.getUsername() + ",\n\n"
                     + "Merci de vous être inscrit sur GCMarket.\n"
-                    + "Pour activer votre compte, veuillez cliquer sur le lien suivant :\n"
-                    + verifyUrl + "\n\n"
+                    + "Voici votre code de vérification : " + otpCode + "\n\n"
+                    + "Saisissez ce code sur la page de vérification pour activer votre compte.\n"
                     + "À bientôt sur GCMarket !";
-            emailService.sendEmail(user.getEmail(), "Confirmez votre inscription GCMarket", message);
+            emailService.sendEmail(user.getEmail(), "Votre code de vérification GCMarket", message);
         } catch (Exception e) {
             System.err.println("Erreur lors de l'envoi de l'email : " + e.getMessage());
         }
 
-        return ResponseEntity.ok(new MessageResponse("Compte créé avec succès ! Veuillez vérifier votre adresse email pour l'activer."));
+        return ResponseEntity.ok(new MessageResponse("Compte créé avec succès ! Un code de vérification a été envoyé à votre adresse email."));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest request) {
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Erreur : Utilisateur non trouvé."));
+        }
+        
+        if (user.isEnabled()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Erreur : Ce compte est déjà activé."));
+        }
+        
+        if (request.getOtp() != null && request.getOtp().equals(user.getVerificationCode())) {
+            user.setEnabled(true);
+            user.setVerificationCode(null);
+            userRepository.save(user);
+            return ResponseEntity.ok(new MessageResponse("Compte vérifié avec succès ! Vous pouvez maintenant vous connecter."));
+        } else {
+            return ResponseEntity.badRequest().body(new MessageResponse("Erreur : Code de vérification incorrect."));
+        }
     }
 
     @GetMapping("/verify")
@@ -229,6 +249,12 @@ class SignupRequest {
 @Data
 class ForgotPasswordRequest {
     private String email;
+}
+
+@Data
+class VerifyOtpRequest {
+    private String email;
+    private String otp;
 }
 
 @Data

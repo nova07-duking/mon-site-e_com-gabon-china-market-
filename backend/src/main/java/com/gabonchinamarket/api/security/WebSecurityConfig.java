@@ -56,10 +56,11 @@ public class WebSecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/", "/error").permitAll()
-                    .requestMatchers("/api/auth/**").permitAll() // Autoriser l'accès aux endpoints d'authentification
-                    .requestMatchers("/api/products/**").permitAll() // Autoriser l'accès public aux produits
-                    .requestMatchers("/api/tracking/**").permitAll() // Autoriser l'accès public au suivi
-                    .anyRequest().authenticated() // Tout le reste nécessite une authentification
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/products/**").permitAll()
+                    .requestMatchers("/api/tracking/**").permitAll()
+                    .anyRequest().authenticated()
             );
 
         http.authenticationProvider(authenticationProvider());

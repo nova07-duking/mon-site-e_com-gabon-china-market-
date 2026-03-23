@@ -122,13 +122,12 @@
       submitBtn.textContent = 'Création en cours...';
 
       try {
-        await AuthManager.register(username, email, password, role, sellerType);
-        showToast('Compte créé avec succès ! Connexion...', 'success');
+        const response = await AuthManager.register(username, email, password, role, sellerType);
+        showToast(response.message, 'success');
         
-        await AuthManager.login(username, password);
         setTimeout(() => {
-          window.location.href = AuthManager.getDashboardLink();
-        }, 1000);
+          window.location.href = `verify-otp.html?email=${encodeURIComponent(email)}`;
+        }, 1500);
       } catch (error) {
         showToast(error.message, 'error');
         submitBtn.disabled = false;

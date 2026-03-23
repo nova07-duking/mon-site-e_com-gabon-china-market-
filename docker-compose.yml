@@ -50,6 +50,20 @@ services:
     networks:
       - gcm_network
 
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: gcm_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    depends_on:
+      - db
+    networks:
+      - gcm_network
+
 volumes:
   mysql_data:
 
