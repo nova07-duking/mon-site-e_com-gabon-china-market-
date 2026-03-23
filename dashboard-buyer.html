@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de bord Acheteur | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js"></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+        <a href="tracking.html">Suivi Chine</a>
+      </div>
+      <div class="nav-actions"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-menu">
+        <div class="sidebar-section">Mon compte</div>
+        <div class="sidebar-item active" onclick="showTab('overview')">
+          <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
+        </div>
+        <div class="sidebar-item" onclick="showTab('orders')">
+          <span class="icon"><script>document.write(ICONS.package)</script></span> Mes commandes
+        </div>
+        <div class="sidebar-item" onclick="showTab('rentals')">
+          <span class="icon"><script>document.write(ICONS.house)</script></span> Mes locations
+        </div>
+        <div class="sidebar-item" onclick="showTab('tracking')">
+          <span class="icon"><script>document.write(ICONS.ship)</script></span> Suivi Chine
+        </div>
+        <div class="sidebar-section">Paramètres</div>
+        <div class="sidebar-item" onclick="showTab('profile')">
+          <span class="icon"><script>document.write(ICONS.user)</script></span> Mon profil
+        </div>
+        <div class="sidebar-item" onclick="AuthManager.logout()">
+          <span class="icon"><script>document.write(ICONS.logout)</script></span> Déconnexion
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="dashboard-main">
+      
+      <!-- Tab: Overview -->
+      <div id="tab-overview" class="tab-content">
+        <h1 style="margin-bottom: var(--space-xs);">Bienvenue, <span class="text-green" id="buyerName">Acheteur</span> 👋</h1>
+        <p class="text-muted mb-2xl">Voici un résumé de votre activité sur GCMarket.</p>
+
+        <div class="grid grid-3 mb-2xl">
+          <div class="stat-card">
+            <div class="stat-value" id="statOrders">0</div>
+            <div class="stat-label">Commandes totales</div>
+            <div class="stat-icon"><script>document.write(ICONS.package)</script></div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-value" id="statRentals">0</div>
+            <div class="stat-label">Locations actives</div>
+            <div class="stat-icon"><script>document.write(ICONS.house)</script></div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-value" id="statTracking">0</div>
+            <div class="stat-label">Colis en transit</div>
+            <div class="stat-icon"><script>document.write(ICONS.ship)</script></div>
+          </div>
+        </div>
+
+        <h3 style="margin-bottom: var(--space-lg);">Dernières commandes</h3>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>N° Commande</th>
+                <th>Article</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="recentOrdersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Orders -->
+      <div id="tab-orders" class="tab-content hidden">
+        <h2 style="margin-bottom: var(--space-xl);"><script>document.write(ICONS.package)</script> Historique des commandes</h2>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Article</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="allOrdersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Rentals -->
+      <div id="tab-rentals" class="tab-content hidden">
+        <h2 style="margin-bottom: var(--space-xl);"><script>document.write(ICONS.house)</script> Mes locations en cours</h2>
+        <div class="grid grid-2" id="rentalsList"></div>
+      </div>
+
+      <!-- Tab: Tracking -->
+      <div id="tab-tracking" class="tab-content hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-xl);">
+          <h2 style="margin:0;"><script>document.write(ICONS.ship)</script> Suivi d'importation Chine</h2>
+          <a href="tracking.html" class="btn btn-secondary btn-sm">Suivre un autre numéro</a>
+        </div>
+        <div id="buyerTrackingList"></div>
+      </div>
+
+      <!-- Tab: Profile -->
+      <div id="tab-profile" class="tab-content hidden">
+        <h2 style="margin-bottom: var(--space-xl);"><script>document.write(ICONS.user)</script> Mon profil</h2>
+        <div class="card" style="padding: var(--space-2xl); max-width: 600px;">
+          <form>
+            <div class="form-group">
+              <label class="form-label">Nom complet</label>
+              <input type="text" class="form-input" id="profName" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="profEmail" disabled>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="showToast('Profil mis à jour (démo)', 'success')">Enregistrer les modifications</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!AuthManager.isLoggedIn() || (!AuthManager.hasRole('ACHETEUR') && !AuthManager.isAdmin())) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = AuthManager.currentUser;
+      const firstName = user.username.split(' ')[0];
+      
+      document.getElementById('buyerName').textContent = firstName;
+      document.getElementById('profName').value = user.username;
+      document.getElementById('profEmail').value = user.email;
+
+      const myOrders = MOCK_ORDERS.filter(o => o.buyer === user.username);
+      const myRentals = myOrders.filter(o => o.type === 'location');
+      const myChinaOrders = myOrders.filter(o => o.type === 'commande_chine');
+
+      document.getElementById('statOrders').textContent = myOrders.length;
+      document.getElementById('statRentals').textContent = myRentals.length;
+      document.getElementById('statTracking').textContent = myChinaOrders.length;
+
+      // Table Row Generator
+      const createOrderRow = (o) => `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${o.productTitle}</td>
+          <td><span class="badge ${o.type === 'commande_chine' ? 'badge-yellow' : o.type === 'location' ? 'badge-blue' : 'badge-green'}">${o.type === 'commande_chine' ? 'Chine' : o.type === 'location' ? 'Location' : 'Achat'}</span></td>
+          <td>${formatPrice(o.totalPrice)}</td>
+          <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
+          <td style="color: var(--text-muted); font-size: 0.85rem;">${o.date}</td>
+        </tr>
+      `;
+
+      document.getElementById('recentOrdersTable').innerHTML = myOrders.slice(0, 3).map(createOrderRow).join('');
+      
+      document.getElementById('allOrdersTable').innerHTML = myOrders.map(o => `
+        <tr>
+          <td>#${o.id}</td>
+          <td>${o.productTitle}</td>
+          <td style="color: var(--yellow); font-weight: 600;">${formatPrice(o.totalPrice)}</td>
+          <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
+          <td><button class="btn btn-sm btn-secondary" onclick="showToast('Facture téléchargée', 'success')">Facture</button></td>
+        </tr>
+      `).join('');
+
+      // Rentals
+      document.getElementById('rentalsList').innerHTML = myRentals.map(r => `
+        <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--blue);">
+          <h3 class="mb-sm">${r.productTitle}</h3>
+          <p class="text-sm text-muted mb-md">Début : ${r.date} — Prochain paiement dans 12 jours</p>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+             <span style="font-weight: 700; color: var(--yellow);">${formatPrice(r.totalPrice)}/mois</span>
+             <span class="badge badge-blue">En cours</span>
+          </div>
+        </div>
+      `).join('');
+
+      // Tracking
+      document.getElementById('buyerTrackingList').innerHTML = myChinaOrders.map(c => `
+        <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--yellow);">
+          <div style="display:flex; justify-content:space-between; margin-bottom: var(--space-lg);">
+            <div>
+              <h3 class="mb-xs text-yellow">N° de suivi: CN-2026-88431</h3>
+              <p class="text-sm">${c.productTitle}</p>
+            </div>
+            <span class="badge badge-yellow">Expédié</span>
+          </div>
+          <div class="stepper" style="padding: 0; position: relative;">
+            <div class="stepper-progress" style="top: 24px; width: 50%;"></div>
+            <div class="step completed"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+            <div class="step completed"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+            <div class="step active"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+            <div class="step"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+            <div class="step"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+          </div>
+          <div class="text-right" style="margin-top: var(--space-md);">
+            <a href="tracking.html?id=CN-2026-88431" class="btn btn-secondary btn-sm">Détails ></a>
+          </div>
+        </div>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

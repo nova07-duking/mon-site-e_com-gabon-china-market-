@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de bord Admin | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+        <span class="badge badge-red" style="margin-left:8px; font-size:0.6rem;">ADMIN</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+        <a href="tracking.html">Suivi Chine</a>
+      </div>
+      <div class="nav-actions"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="dashboard">
+    <aside class="sidebar">
+      <div class="sidebar-menu">
+        <div class="sidebar-section">Plateforme</div>
+        <div class="sidebar-item active" onclick="showTab('overview')">
+          <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
+        </div>
+        <div class="sidebar-item" onclick="showTab('users')">
+          <span class="icon"><script>document.write(ICONS.users)</script></span> Utilisateurs
+        </div>
+        <div class="sidebar-item" onclick="showTab('products')">
+          <span class="icon"><script>document.write(ICONS.box)</script></span> Produits & Annonces
+        </div>
+        
+        <div class="sidebar-section">MB Shop & Logistique</div>
+        <div class="sidebar-item" onclick="showTab('orders')">
+          <span class="icon"><script>document.write(ICONS.receipt)</script></span> Commandes & Locations
+        </div>
+        <div class="sidebar-item" onclick="showTab('mbshop')">
+          <span class="icon"><script>document.write(ICONS.store)</script></span> Gestion MB Shop
+        </div>
+        <div class="sidebar-item" onclick="showTab('tracking')">
+          <span class="icon"><script>document.write(ICONS.ship)</script></span> Suivi Chine
+        </div>
+        
+        <div class="sidebar-section">Système</div>
+        <div class="sidebar-item" onclick="AuthManager.logout()">
+          <span class="icon"><script>document.write(ICONS.logout)</script></span> Déconnexion
+        </div>
+      </div>
+    </aside>
+
+    <div class="dashboard-main">
+      
+      <!-- Tab: Overview -->
+      <div id="tab-overview" class="tab-content">
+        <div class="flex-between mb-xl">
+          <h1 style="margin: 0;">Super <span class="text-green">Admin</span> 👋</h1>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Rapports générés', 'success')">
+             <script>document.write(ICONS.fileText || ICONS.chart)</script> Exporter les rapports
+          </button>
+        </div>
+
+        <div class="grid grid-4 mb-2xl">
+          <div class="stat-card">
+            <div class="stat-value" id="statUsers">0</div>
+            <div class="stat-label">Utilisateurs inscrits</div>
+            <div class="stat-icon"><script>document.write(ICONS.users)</script></div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-value" id="statProducts">0</div>
+            <div class="stat-label">Produits en ligne</div>
+            <div class="stat-icon"><script>document.write(ICONS.box)</script></div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-value" id="statMbShop">0</div>
+            <div class="stat-label">Articles MB Shop</div>
+            <div class="stat-icon"><script>document.write(ICONS.store)</script></div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-value" id="statOrders">0</div>
+            <div class="stat-label">Transactions totales</div>
+            <div class="stat-icon"><script>document.write(ICONS.receipt)</script></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <!-- Recent Users -->
+          <div>
+            <h3 class="mb-md">Derniers Inscrits</h3>
+            <div class="card" style="padding: 0;">
+              <table class="table">
+                <thead><tr><th>Utilisateur</th><th>Rôle</th><th>Date</th></tr></thead>
+                <tbody id="recentUsersTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- MB Shop Revenue -->
+          <div>
+            <h3 class="mb-md">Chiffre d'Affaires Mensuel</h3>
+            <div class="card flex-center" style="height: 250px; flex-direction: column;">
+               <script>document.write(ICONS.chart)</script>
+               <h2 class="text-yellow" style="margin-top: var(--space-md);">12 500 000 FCFA</h2>
+               <p class="text-sm text-muted">+15% par rapport au mois dernier</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Users -->
+      <div id="tab-users" class="tab-content hidden">
+        <h2 class="mb-xl"><script>document.write(ICONS.users)</script> Gestion des utilisateurs</h2>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Type (Vendeur)</th>
+                <th>Inscription</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allUsersTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Tracking (China Imports) -->
+      <div id="tab-tracking" class="tab-content hidden">
+        <div class="flex-between mb-xl">
+          <h2 style="margin:0;"><script>document.write(ICONS.ship)</script> Gestion Logistique & Imports</h2>
+          <button class="btn btn-primary btn-sm" onclick="showToast('Ouvrir création tracking', 'info')">Nouveau Suivi</button>
+        </div>
+        <div id="adminTrackingList" class="grid gap-lg"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Delete Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="text-error">Confirmer la suppression</h3>
+        <button class="modal-close" onclick="closeDeleteModal()"><script>document.write(ICONS.x)</script></button>
+      </div>
+      <p style="margin-bottom: var(--space-xl);">Êtes-vous sûr de vouloir supprimer <strong id="deleteTargetName"></strong> ? Cette action est irréversible.</p>
+      <div style="display: flex; gap: var(--space-md); justify-content: flex-end;">
+        <button class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+        <button class="btn btn-danger" onclick="confirmDelete()">Supprimer définitivement</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    let userToDelete = null;
+
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+      const tab = document.getElementById(`tab-${tabName}`);
+      if (tab) tab.classList.remove('hidden');
+      if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    }
+
+    function confirmDeleteUser(id, name) {
+      userToDelete = id;
+      document.getElementById('deleteTargetName').textContent = name;
+      document.getElementById('deleteModal').classList.add('active');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.remove('active');
+      userToDelete = null;
+    }
+
+    function confirmDelete() {
+      if (userToDelete) {
+        showToast(`Utilisateur ${userToDelete} supprimé avec succès.`, 'success');
+        closeDeleteModal();
+        // In real app: refresh UI
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!AuthManager.isLoggedIn() || !AuthManager.isAdmin()) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Populate Overview Stats
+      const users = Object.values(MOCK_USERS);
+      document.getElementById('statUsers').textContent = users.length;
+      document.getElementById('statProducts').textContent = MOCK_PRODUCTS.length;
+      document.getElementById('statMbShop').textContent = MOCK_PRODUCTS.filter(p => p.isMbShop).length;
+      document.getElementById('statOrders').textContent = MOCK_ORDERS.length;
+
+      // Users Tables
+      document.getElementById('recentUsersTable').innerHTML = users.map(u => `
+        <tr>
+          <td>${u.username}</td>
+          <td><span class="badge ${u.role === 'ADMIN' ? 'badge-red' : u.role === 'VENDEUR' ? 'badge-yellow' : 'badge-blue'}">${u.role}</span></td>
+          <td>${u.joinDate}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('allUsersTable').innerHTML = users.map(u => `
+        <tr>
+          <td>#${u.id}</td>
+          <td><strong>${u.username}</strong></td>
+          <td>${u.email}</td>
+          <td><span class="badge ${u.role === 'ADMIN' ? 'badge-red' : u.role === 'VENDEUR' ? 'badge-yellow' : 'badge-blue'}">${u.role}</span></td>
+          <td>${u.role === 'VENDEUR' ? `<span class="badge badge-green">${u.sellerType === 'vehicule' ? 'Véhicule' : 'Immo'}</span>` : '-'}</td>
+          <td>${u.joinDate}</td>
+          <td>
+            <button class="btn btn-sm btn-secondary" onclick="confirmDeleteUser(${u.id}, '${u.username}')" style="color:var(--error); border-color:var(--error);"><script>document.write(ICONS.trash)</script> Supprimer</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Tracking Table for Admin
+      const trackingData = Object.entries(MOCK_TRACKING)[0];
+      if (trackingData) {
+        const [trId, t] = trackingData;
+        document.getElementById('adminTrackingList').innerHTML = `
+          <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--green);">
+            <div class="flex-between mb-lg">
+              <div>
+                <h3 class="mb-xs text-green">N°: ${trId}</h3>
+                <p class="text-sm">Client: ${MOCK_ORDERS.find(o => o.id === t.orderId)?.buyer || 'Inconnu'} | Article: ${t.product}</p>
+              </div>
+              <div>
+                <span class="badge badge-yellow mr-sm">${getStatusLabel(t.status)}</span>
+              </div>
+            </div>
+            
+            <div class="form-group mb-0" style="background: var(--bg-secondary); padding: var(--space-md); border-radius: var(--radius-md);">
+              <label class="form-label" style="font-size: 0.8rem;">Mettre à jour le statut</label>
+              <div class="flex gap-sm">
+                <select class="form-select flex-1">
+                  <option value="1">1. Commande confirmée</option>
+                  <option value="2">2. Entrepôt Chine (Actuel)</option>
+                  <option value="3">3. Expédié / En transit</option>
+                  <option value="4">4. Douanes Gabon</option>
+                  <option value="5">5. Livré MB Shop</option>
+                </select>
+                <button class="btn btn-primary" onclick="showToast('Statut mis à jour', 'success')">Actualiser</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

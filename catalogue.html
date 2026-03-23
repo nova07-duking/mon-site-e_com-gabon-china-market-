@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catalogue | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script src="js/app.js"></script><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html" class="active">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+        <a href="tracking.html">Suivi Chine</a>
+      </div>
+      <div class="nav-actions"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <section class="section container" style="padding-top: calc(var(--nav-height) + var(--space-2xl)); min-height: 100vh;">
+    
+    <div class="flex-between" style="flex-wrap: wrap; gap: var(--space-md); margin-bottom: var(--space-xl);">
+      <div>
+        <h1 style="margin-bottom: var(--space-xs); display:flex; align-items:center; gap:var(--space-sm);">
+          <script>document.write(ICONS.search)</script> Explorer le catalogue
+        </h1>
+        <p class="text-muted" id="resultCount">Chargement des résultats...</p>
+      </div>
+      <div class="hero-search" style="margin-top: 0; min-width: 300px;">
+        <input type="text" id="searchInput" placeholder="Rechercher... (ex: Toyota, Appartement)">
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-2xl" style="padding: var(--space-lg);">
+      <div style="margin-bottom: var(--space-md);">
+        <strong style="display: block; margin-bottom: var(--space-sm); font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase;">Type de transaction</strong>
+        <div class="filter-chips" id="modeFilters">
+          <div class="chip active" data-filter="all">Tout voir</div>
+          <div class="chip" data-filter="vente"><script>document.write(ICONS.tag)</script> Vente</div>
+          <div class="chip" data-filter="location"><script>document.write(ICONS.house)</script> Location</div>
+        </div>
+      </div>
+
+      <div>
+        <strong style="display: block; margin-bottom: var(--space-sm); font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase;">Catégories</strong>
+        <div class="filter-chips" id="catFilters">
+          <div class="chip active" data-filter="all">Toutes les catégories</div>
+          <div class="chip" data-filter="vehicule"><script>document.write(ICONS.car)</script> Véhicules</div>
+          <div class="chip" data-filter="maison"><script>document.write(ICONS.house)</script> Maisons</div>
+          <div class="chip" data-filter="appartement"><script>document.write(ICONS.building)</script> Appartements</div>
+          <div class="chip" data-filter="mbshop" style="border-color: var(--yellow); color: var(--yellow);">
+            <script>document.write(ICONS.store)</script> Exclusivité MB Shop
+          </div>
+        </div>
+      </div>
+      
+      <div style="margin-top: var(--space-sm);">
+        <label style="display: flex; gap: var(--space-sm); align-items: center; cursor: pointer;">
+          <input type="checkbox" id="availableOnlyFilter">
+          <span class="text-sm text-secondary">Afficher uniquement les produits en stock</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="grid grid-3" id="catalogueGrid">
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+    </div>
+
+    <div id="noResults" class="text-center hidden" style="padding: var(--space-4xl) 0;">
+      <div style="font-size: 4rem; margin-bottom: var(--space-md); color: var(--border-glass-hover);">
+        <script>document.write(ICONS.search)</script>
+      </div>
+      <h3>Aucun résultat trouvé</h3>
+      <p class="text-muted">Essayez de modifier vos filtres ou de faire une autre recherche.</p>
+    </div>
+
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container text-center">
+      <p class="text-muted">© 2026 GCMarket & MB Shop.</p>
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    let currentFilters = {
+      search: '',
+      category: 'all',
+      mode: 'all',
+      mbshop: undefined,
+      available: false
+    };
+
+    function updateCatalogue() {
+      const grid = document.getElementById('catalogueGrid');
+      const noResults = document.getElementById('noResults');
+      const count = document.getElementById('resultCount');
+      
+      const filtered = filterProducts(MOCK_PRODUCTS, currentFilters);
+      
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        noResults.classList.remove('hidden');
+        count.textContent = '0 résultat trouvé';
+      } else {
+        noResults.classList.add('hidden');
+        grid.innerHTML = filtered.map(createProductCard).join('');
+        count.textContent = `${filtered.length} résultat${filtered.length > 1 ? 's' : ''} trouvé${filtered.length > 1 ? 's' : ''}`;
+      }
+      
+      // Re-initialize SVG icons added dynamically
+      document.querySelectorAll('.btn.disabled').forEach(btn => {
+        if (!AuthManager.canBuy()) {
+           btn.title = 'Connectez-vous pour acheter';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Init search from URL
+      const searchParam = getUrlParam('search');
+      if (searchParam) {
+        document.getElementById('searchInput').value = searchParam;
+        currentFilters.search = searchParam;
+      }
+      
+      const catParam = getUrlParam('category');
+      if (catParam) {
+        currentFilters.category = catParam;
+        document.querySelectorAll('#catFilters .chip').forEach(c => c.classList.remove('active'));
+        document.querySelector(`#catFilters .chip[data-filter="${catParam}"]`)?.classList.add('active');
+      }
+
+      const mbshopParam = getUrlParam('mbshop');
+      if (mbshopParam === 'true') {
+        currentFilters.category = 'all';
+        currentFilters.mbshop = true;
+        document.querySelectorAll('#catFilters .chip').forEach(c => c.classList.remove('active'));
+        document.querySelector(`#catFilters .chip[data-filter="mbshop"]`)?.classList.add('active');
+      }
+
+      // Event Listeners
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        currentFilters.search = e.target.value;
+        updateCatalogue();
+      });
+
+      document.getElementById('availableOnlyFilter').addEventListener('change', (e) => {
+        currentFilters.available = e.target.checked;
+        updateCatalogue();
+      });
+
+      document.querySelectorAll('#modeFilters .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('#modeFilters .chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentFilters.mode = chip.dataset.filter;
+          updateCatalogue();
+        });
+      });
+
+      document.querySelectorAll('#catFilters .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('#catFilters .chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          
+          if (chip.dataset.filter === 'mbshop') {
+            currentFilters.category = 'all';
+            currentFilters.mbshop = true;
+          } else {
+            currentFilters.category = chip.dataset.filter;
+            currentFilters.mbshop = undefined;
+          }
+          updateCatalogue();
+        });
+      });
+
+      // Initial Load delay for UI skeleton effect
+      setTimeout(updateCatalogue, 300);
+    });
+  </script>
+</body>
+</html>

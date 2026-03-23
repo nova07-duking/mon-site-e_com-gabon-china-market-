@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: gcm_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gabon_china_market
+    ports:
+      - "3609:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - gcm_network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: gcm_backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/gabon_china_market?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - GCM_APP_BACKENDURL=${GCM_BACKEND_URL:-http://localhost:8080}
+      - GCM_APP_FRONTENDURL=${GCM_FRONTEND_URL:-http://localhost}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - gcm_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: gcm_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - gcm_network
+
+volumes:
+  mysql_data:
+
+networks:
+  gcm_network:
+    driver: bridge

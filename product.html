@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détails du Produit | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script src="js/app.js"></script><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html" class="active">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+        <a href="tracking.html">Suivi Chine</a>
+      </div>
+      <div class="nav-actions"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <section class="section container" style="padding-top: calc(var(--nav-height) + var(--space-2xl)); min-height: 100vh;">
+    <a href="catalogue.html" class="btn btn-secondary btn-sm mb-lg">Retour au catalogue</a>
+
+    <div id="productDetailContainer">
+      <div class="grid grid-2">
+        <div class="skeleton" style="height: 500px;"></div>
+        <div>
+          <div class="skeleton" style="height: 48px; width: 80%; margin-bottom: 24px;"></div>
+          <div class="skeleton" style="height: 32px; width: 40%; margin-bottom: 24px;"></div>
+          <div class="skeleton" style="height: 150px; margin-bottom: 24px;"></div>
+          <div class="skeleton" style="height: 56px; width: 100%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Similar Products -->
+    <div class="mt-xl" style="margin-top: var(--space-4xl);">
+      <h3 class="mb-lg">Produits similaires</h3>
+      <div class="grid grid-3" id="similarProductsGrid"></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container text-center">
+      <p class="text-muted">© 2026 GCMarket & MB Shop.</p>
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    function renderProduct(product) {
+      if (!product) {
+        document.getElementById('productDetailContainer').innerHTML = `
+          <div class="text-center" style="padding: var(--space-4xl) 0;">
+            <h3>Produit introuvable</h3>
+            <p>Ce produit n'existe pas ou a été retiré.</p>
+            <a href="catalogue.html" class="btn btn-primary mt-md">Retour au catalogue</a>
+          </div>
+        `;
+        return;
+      }
+
+      document.title = `${product.title} | GCMarket`;
+
+      const isUnavailable = !product.available;
+      const isLocation = product.mode === 'location';
+
+      document.getElementById('productDetailContainer').innerHTML = `
+        <div class="grid grid-2" style="gap: var(--space-2xl);">
+          <div style="position: relative; border-radius: var(--radius-xl); overflow: hidden; height: 500px;">
+            <img src="${product.image}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">
+            ${product.isMbShop ? `<span class="badge badge-mbshop" style="position: absolute; top: 16px; left: 16px; font-size: 0.9rem; padding: 6px 16px; z-index: 2;">${icon('store')} Exclusivité MB Shop</span>` : ''}
+            <span class="badge ${isLocation ? 'badge-blue' : 'badge-green'}" style="position: absolute; top: 16px; right: 16px; font-size: 0.9rem; padding: 6px 16px; z-index: 2;">
+              ${isLocation ? icon('house') + ' Location' : icon('tag') + ' Vente'}
+            </span>
+            ${isUnavailable ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1;"><span class="badge badge-red" style="font-size:1.2rem;padding:12px 24px;">${icon('alert')} RUPTURE DE STOCK</span></div>` : ''}
+          </div>
+          
+          <div>
+            <span class="text-muted text-sm" style="text-transform: uppercase; letter-spacing: 1px;">${product.category}</span>
+            <h1 style="margin: var(--space-xs) 0 var(--space-md);">${product.title}</h1>
+            
+            <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-lg);">
+              <span class="badge ${isUnavailable ? 'badge-red' : 'badge-green'}">
+                ${isUnavailable ? icon('x') + ' Indisponible' : icon('check') + ' En stock (' + product.quantity + ' restant' + (product.quantity>1?'s':'') + ')'}
+              </span>
+              <span class="text-muted">Vendeur: <strong class="text-primary">${product.sellerName}</strong></span>
+            </div>
+
+            <div class="card-price" style="font-size: 2.5rem; margin-bottom: var(--space-xl);">
+              ${formatPrice(product.price)} <span style="font-size: 1.2rem;">${product.priceLabel || ''}</span>
+            </div>
+
+            <div class="card" style="padding: var(--space-lg); margin-bottom: var(--space-xl);">
+              <h4 class="mb-sm">Caractéristiques</h4>
+              <ul style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm);">
+                ${product.features.map(f => `<li style="display: flex; gap: 8px; color: var(--text-secondary);"><span class="text-green">${icon('check', 'icon-sm')}</span> ${f}</li>`).join('')}
+              </ul>
+            </div>
+
+            <div class="mb-2xl">
+              <h4 class="mb-sm">Description</h4>
+              <p style="white-space: pre-line;">${product.description}</p>
+            </div>
+
+            ${product.isMbShop ? `
+              <div class="card mb-2xl" style="padding: var(--space-md); border-color: var(--yellow); background: rgba(252,209,22,0.05);">
+                <div style="display: flex; gap: var(--space-md); align-items: center;">
+                  <div style="color: var(--yellow); font-size: 2rem;">${icon('store')}</div>
+                  <div>
+                    <strong style="display: block; color: var(--text-primary);">Retrait au MB Shop</strong>
+                    <span class="text-sm text-secondary">Cet article est disponible physiquement dans notre boutique à Libreville. Payez en ligne ou sur place.</span>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            <div style="display: flex; gap: var(--space-md);">
+              ${isUnavailable ? 
+                `<button class="btn btn-lg disabled" style="flex: 2; background: var(--bg-glass);" disabled>${icon('x')} Produit Indisponible</button>` :
+                `<button class="btn btn-primary btn-lg btn-buy" style="flex: 2;" onclick="showToast('Ajouté au panier !', 'success')">
+                  ${isLocation ? icon('house') + ' Demander la location' : icon('cart') + ' Ajouter au panier'}
+                 </button>`
+              }
+              <button class="btn btn-secondary btn-lg" style="flex: 1;" onclick="showToast('Vendeur contacté', 'info')">
+                ${icon('messageCircle')} Contacter
+              </button>
+            </div>
+
+            <!-- Warning for unauthenticated users (handled by app.js updateUI later) -->
+            <p id="authWarning" class="text-sm text-error mt-sm hidden">${icon('alert', 'icon-sm')} Vous devez être connecté en tant qu'acheteur pour effectuer cette action.</p>
+          </div>
+        </div>
+      `;
+
+      // Render similar
+      const similar = MOCK_PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3);
+      if (similar.length > 0) {
+        document.getElementById('similarProductsGrid').innerHTML = similar.map(createProductCard).join('');
+      } else {
+        document.getElementById('similarProductsGrid').innerHTML = '<p class="text-muted">Aucun produit similaire.</p>';
+      }
+
+      // Re-trigger auth updates for the new buttons
+      setTimeout(() => AuthManager.updateUI(), 50);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const productId = parseInt(getUrlParam('id'), 10);
+      const product = MOCK_PRODUCTS.find(p => p.id === productId);
+      
+      // Simulate network
+      setTimeout(() => renderProduct(product), 400);
+    });
+  </script>
+</body>
+</html>

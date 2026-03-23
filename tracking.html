@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suivi Chine - Gabon | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script src="js/app.js"></script><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+        <a href="tracking.html" class="active">Suivi Chine</a>
+      </div>
+      <div class="nav-actions"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Tracking -->
+  <section class="hero" style="min-height: 50vh; display: flex; align-items: center;">
+    <div class="container text-center" style="position: relative; z-index: 2;">
+      <span class="badge badge-mbshop mb-md" style="font-size: 0.9rem;">Service Logistique Exclusif</span>
+      <h1 class="mb-lg">Suivez votre importation <span class="highlight">Chine - Gabon</span></h1>
+      <p class="text-muted mb-2xl" style="max-width: 600px; margin-left: auto; margin-right: auto; font-size: 1.1rem;">
+        Entrez votre numéro de suivi fourni lors de la commande pour connaître la position exacte de votre colis.
+      </p>
+
+      <div class="hero-search" style="margin: 0 auto; max-width: 600px;">
+        <input type="text" id="trackInput" placeholder="Ex: CN-2026-88431">
+        <button class="btn btn-primary" onclick="trackOrder()">Suivre</button>
+      </div>
+      
+      <p class="text-sm text-muted mt-md">Numéro de démo : <strong>CN-2026-88431</strong></p>
+    </div>
+  </section>
+
+  <!-- Tracking Result Area -->
+  <section class="section container" id="trackingResult" style="display: none; min-height: 50vh;">
+    <div class="flex-between mb-xl">
+      <h2>Résultat pour : <span class="text-green" id="resId">CN-123</span></h2>
+      <span class="badge badge-yellow" id="resStatus" style="font-size: 1rem; padding: 8px 16px;">En Transit</span>
+    </div>
+
+    <div class="grid grid-2" style="gap: var(--space-2xl);">
+      
+      <!-- Stepper -->
+      <div class="card" style="padding: var(--space-2xl);">
+        <h3 class="mb-xl">Progression de l'expédition</h3>
+        <div class="stepper" id="trackingStepper" style="flex-direction: column; align-items: flex-start; padding: 0;">
+          <!-- Generated via JS -->
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div>
+        <div class="card mb-lg" style="padding: var(--space-xl);">
+          <h3 class="mb-md">Détails de la commande</h3>
+          <table class="table" style="background: transparent;">
+            <tbody>
+              <tr><td style="color: var(--text-muted); border:none; padding-left:0;">Article</td><td style="border:none; text-align:right; font-weight:600;" id="resProduct">-</td></tr>
+              <tr><td style="color: var(--text-muted); border:none; padding-left:0;">Transporteur</td><td style="border:none; text-align:right; font-weight:600;">MB Logistics Sea</td></tr>
+              <tr><td style="color: var(--text-muted); border:none; padding-left:0;">Destination</td><td style="border:none; text-align:right; font-weight:600;">MB Shop, Libreville</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="padding: var(--space-xl);">
+          <h3 class="mb-md">Historique</h3>
+          <div style="display:flex; flex-direction:column; gap: var(--space-md);" id="resHistory">
+            <!-- Generated via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Error State -->
+  <section class="section container" id="trackingError" style="display: none; min-height: 30vh; text-align: center;">
+    <div style="font-size: 4rem; color: var(--error); margin-bottom: var(--space-md);"><script>document.write(ICONS.alert)</script></div>
+    <h3 class="mb-sm">Numéro introuvable</h3>
+    <p class="text-muted">Vérifiez le numéro de suivi et réessayez. Si le problème persiste, contactez le support MB Shop.</p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container text-center">
+      <p class="text-muted">© 2026 GCMarket & MB Shop.</p>
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    function trackOrder() {
+      const id = document.getElementById('trackInput').value.trim();
+      if (!id) return;
+
+      showToast('Recherche en cours...', 'info', 1000);
+
+      setTimeout(() => {
+        const data = MOCK_TRACKING[id];
+        
+        document.getElementById('trackingResult').style.display = 'none';
+        document.getElementById('trackingError').style.display = 'none';
+
+        if (data) {
+          document.getElementById('resId').textContent = id;
+          document.getElementById('resStatus').textContent = getStatusLabel(data.status);
+          document.getElementById('resStatus').className = `badge ${getStatusColor(data.status)}`;
+          document.getElementById('resProduct').textContent = data.product;
+
+          // Build Stepper
+          const icons = [ICONS.check, ICONS.warehouse, ICONS.ship, ICONS.customs, ICONS.store];
+          const progressPct = ((data.currentStep) / (data.steps.length - 1)) * 100;
+          
+          let stepperHTML = `<div class="stepper-progress" style="top: 0; bottom: auto; left: 24px; width: 3px !important; height: ${progressPct}%; transition: height 1s ease-out;"></div>`;
+          
+          stepperHTML += data.steps.map((step, index) => {
+            let stateClass = '';
+            if (step.done) stateClass = 'completed';
+            if (index === data.currentStep) stateClass = 'active';
+            
+            return `
+              <div class="step ${stateClass}" style="flex-direction:row; gap:var(--space-md); margin-bottom:var(--space-xl); width:100%;">
+                <div class="step-circle" style="width:50px; height:50px; margin:0; flex-shrink:0;">${icons[index]}</div>
+                <div class="step-label" style="text-align:left; max-width:none; flex:1;">
+                  <strong style="display:block; font-size:1rem;">${step.label}</strong>
+                  ${step.date ? `<span class="text-muted text-sm">${step.date}</span>` : '<span class="text-muted text-sm">En attente</span>'}
+                </div>
+              </div>
+            `;
+          }).join('');
+          
+          document.getElementById('trackingStepper').innerHTML = stepperHTML;
+
+          // Build History
+          document.getElementById('resHistory').innerHTML = data.history.map(h => `
+            <div style="position:relative; padding-left:24px; border-left:2px solid var(--border-glass);">
+              <div style="position:absolute; left:-6px; top:4px; width:10px; height:10px; border-radius:50%; background:var(--green);"></div>
+              <strong style="display:block; font-size:0.9rem;">${h.event}</strong>
+              <div class="text-muted text-sm flex gap-sm align-center">
+                <span>${ICONS.clock} ${h.date}</span>
+                <span>${ICONS.mapPin} ${h.location}</span>
+              </div>
+            </div>
+          `).join('');
+
+          document.getElementById('trackingResult').style.display = 'block';
+          
+          // Scroll to result
+          document.getElementById('trackingResult').scrollIntoView({ behavior: 'smooth' });
+
+        } else {
+          document.getElementById('trackingError').style.display = 'block';
+        }
+      }, 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlId = getUrlParam('id');
+      if (urlId) {
+        document.getElementById('trackInput').value = urlId;
+        trackOrder();
+      }
+    });
+  </script>
+</body>
+</html>

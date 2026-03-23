@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de bord Vendeur | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js"></script>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+        <span class="badge badge-yellow" style="margin-left:8px; font-size:0.6rem;">VENDEUR</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+      </div>
+      <div class="nav-actions"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-menu">
+        <div class="sidebar-section">Boutique</div>
+        <div class="sidebar-item active" onclick="showTab('overview')">
+          <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
+        </div>
+        <div class="sidebar-item" onclick="showTab('products')">
+          <span class="icon"><script>document.write(ICONS.box)</script></span> Mes annonces
+        </div>
+        <div class="sidebar-item" onclick="showTab('sales')">
+          <span class="icon"><script>document.write(ICONS.dollar)</script></span> Mes ventes & locations
+        </div>
+        <div class="sidebar-section">Paramètres</div>
+        <div class="sidebar-item" onclick="showTab('profile')">
+          <span class="icon"><script>document.write(ICONS.settings)</script></span> Configuration
+        </div>
+        <div class="sidebar-item" onclick="AuthManager.logout()">
+          <span class="icon"><script>document.write(ICONS.logout)</script></span> Déconnexion
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="dashboard-main">
+      
+      <!-- Tab: Overview -->
+      <div id="tab-overview" class="tab-content">
+        <h1 style="margin-bottom: var(--space-xs);">Espace Vendeur — <span class="text-yellow" id="sellerName">Vendeur</span></h1>
+        <p class="text-muted mb-2xl">Spécialité : <strong id="sellerTypeLabel" class="text-primary" style="text-transform: capitalize;"></strong></p>
+
+        <div class="grid grid-3 mb-2xl">
+          <div class="stat-card">
+            <div class="stat-value" id="statActiveAds">0</div>
+            <div class="stat-label">Annonces actives</div>
+            <div class="stat-icon"><script>document.write(ICONS.box)</script></div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-value" id="statSalesCount">0</div>
+            <div class="stat-label">Ventes réalisées</div>
+            <div class="stat-icon"><script>document.write(ICONS.receipt)</script></div>
+          </div>
+          <div class="stat-card yellow">
+            <div class="stat-value" id="statRevenue">0 FCFA</div>
+            <div class="stat-label">Chiffre d'affaires estimé</div>
+            <div class="stat-icon"><script>document.write(ICONS.dollar)</script></div>
+          </div>
+        </div>
+
+        <h3 class="mb-lg">Dernières transactions</h3>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr><th>Réf</th><th>Article</th><th>Client</th><th>Date</th><th>Montant</th><th>Statut</th></tr>
+            </thead>
+            <tbody id="sellerSalesTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Products -->
+      <div id="tab-products" class="tab-content hidden">
+        <div class="flex-between mb-xl">
+          <h2><script>document.write(ICONS.box)</script> Mes Annonces</h2>
+          <button class="btn btn-primary btn-sm" onclick="showTab('add-product')"><script>document.write(ICONS.plus)</script> Ajouter une annonce</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Statut</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="sellerProductsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab: Add Product -->
+      <div id="tab-add-product" class="tab-content hidden">
+        <div class="flex-between mb-xl">
+          <h2>Nouvelle Annonce</h2>
+          <button class="btn btn-secondary btn-sm" onclick="showTab('products')">Retour aux annonces</button>
+        </div>
+        <div class="card" style="padding: var(--space-2xl); max-width: 800px;">
+          <form onsubmit="event.preventDefault(); showToast('Annonce publiée avec succès !', 'success'); setTimeout(()=>showTab('products'), 1500);">
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="form-label">Titre de l'annonce</label>
+                <input type="text" class="form-input" required placeholder="Ex: Toyota RAV4 2021">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Prix (FCFA)</label>
+                <input type="number" class="form-input" required placeholder="15000000">
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">Type de transaction</label>
+                <select class="form-select">
+                  <option value="vente">Vente</option>
+                  <option value="location">Location</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label">Catégorie</label>
+                <select class="form-select" id="addCategorySelect">
+                  <!-- JS will populate options based on sellerType -->
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description détaillée</label>
+              <textarea class="form-textarea" required placeholder="Décrivez votre produit..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Publier l'annonce</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    function showTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+      const activeTab = document.getElementById(`tab-${tabName}`);
+      if (activeTab) activeTab.classList.remove('hidden');
+      if (event && event.currentTarget && event.currentTarget.classList.contains('sidebar-item')) {
+         event.currentTarget.classList.add('active');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!AuthManager.isLoggedIn() || (!AuthManager.hasRole('VENDEUR') && !AuthManager.isAdmin())) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = AuthManager.currentUser;
+      document.getElementById('sellerName').textContent = user.username;
+      
+      const typeLabel = user.sellerType === 'vehicule' ? 'Véhicules (Auto/Moto)' : 
+                        user.sellerType === 'immo' ? 'Immobilier (Maisons/Appartements)' : 'Général';
+      document.getElementById('sellerTypeLabel').textContent = typeLabel;
+
+      // Populate Create Form Options based on Type
+      const catSelect = document.getElementById('addCategorySelect');
+      if (user.sellerType === 'vehicule') {
+        catSelect.innerHTML = `<option value="vehicule">Véhicule (Voiture/SUV)</option><option value="moto">Moto</option><option value="camion">Camion</option>`;
+      } else {
+        catSelect.innerHTML = `<option value="maison">Maison/Villa</option><option value="appartement">Appartement</option><option value="terrain">Terrain</option>`;
+      }
+
+      const myProducts = MOCK_PRODUCTS.filter(p => p.sellerId === user.id);
+      document.getElementById('statActiveAds').textContent = myProducts.filter(p => p.available).length;
+      document.getElementById('statSalesCount').textContent = "2"; // Mock
+      document.getElementById('statRevenue').textContent = formatPrice(myProducts.reduce((acc, p) => acc + (p.available ? p.price : 0), 0) * 0.5); // Mock
+
+      document.getElementById('sellerProductsTable').innerHTML = myProducts.map(p => `
+        <tr>
+          <td><div class="flex gap-sm align-center">
+            <img src="${p.image}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+            <span>${p.title}</span>
+          </div></td>
+          <td style="text-transform: capitalize;">${p.category}</td>
+          <td style="color: var(--yellow); font-weight: 600;">${formatPrice(p.price)}</td>
+          <td>${p.quantity}</td>
+          <td>${p.available ? `<span class="badge badge-green">En ligne</span>` : `<span class="badge badge-red">Rupture</span>`}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm"><script>document.write(ICONS.edit)</script></button>
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('sellerSalesTable').innerHTML = `
+        <tr><td>#1001</td><td>Toyota Land Cruiser V8</td><td>Jean-Pierre M.</td><td>15/02/2026</td><td>${formatPrice(25000000)}</td><td><span class="badge badge-green">Livré</span></td></tr>
+        <tr><td>#1004</td><td>Mercedes-Benz Classe C</td><td>Marie O.</td><td>18/03/2026</td><td>${formatPrice(18500000)}</td><td><span class="badge badge-blue">En cours</span></td></tr>
+      `;
+    });
+  </script>
+</body>
+</html>

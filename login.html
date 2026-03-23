@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script src="js/app.js"></script><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+        <a href="tracking.html">Suivi Chine</a>
+      </div>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-secondary btn-sm">Connexion</a>
+        <a href="register.html" class="btn btn-primary btn-sm">Inscription</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="auth-page">
+    <div class="auth-card">
+      <h2>Bon retour !</h2>
+      <p class="subtitle text-muted">Connectez-vous pour accéder à votre espace GCMarket.</p>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Adresse email ou Nom d'utilisateur</label>
+          <input type="text" id="emailInput" class="form-input" placeholder="votre@email.ga" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mot de passe</label>
+          <input type="password" id="passwordInput" class="form-input" placeholder="••••••••" required>
+        </div>
+
+        <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+          <label style="display: flex; gap: 8px; align-items: center; cursor: pointer;">
+            <input type="checkbox"> <span class="text-sm text-muted">Se souvenir de moi</span>
+          </label>
+          <a href="forgot-password.html" class="text-sm">Mot de passe oublié ?</a>
+        </div>
+
+        <button id="submitBtn" type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Se connecter</button>
+
+        <div class="auth-divider">ou</div>
+
+        <div class="text-center mb-md text-sm text-muted">Connexion rapide (démo) :</div>
+        
+        <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          <button type="button" class="btn btn-secondary" onclick="demoLogin('ACHETEUR')">
+            <script>document.write(ICONS.cart)</script> Se connecter en tant qu'Acheteur
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="demoLogin('VENDEUR', 'immo')">
+            <script>document.write(ICONS.tag)</script> Se connecter en tant que Vendeur (Immo)
+          </button>
+          <button type="button" class="btn btn-secondary" style="border-color: rgba(239, 68, 68, 0.3);" onclick="demoLogin('ADMIN')">
+            <script>document.write(ICONS.settings)</script> Se connecter en tant qu'Admin
+          </button>
+        </div>
+
+        <div class="mt-xl text-center" style="margin-top: var(--space-xl);">
+          <p class="text-sm">Pas encore de compte ? <a href="register.html">Inscrivez-vous</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('emailInput').value;
+      const password = document.getElementById('passwordInput').value;
+      
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Connexion en cours...';
+
+      try {
+        await AuthManager.login(email, password);
+        showToast('Connexion réussie', 'success');
+        setTimeout(() => {
+          window.location.href = AuthManager.getDashboardLink();
+        }, 800);
+      } catch (error) {
+        showToast(error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Se connecter';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Redirect if already logged in
+      if (AuthManager.isLoggedIn()) {
+        window.location.href = AuthManager.getDashboardLink();
+      }
+    });
+  </script>
+</body>
+</html>

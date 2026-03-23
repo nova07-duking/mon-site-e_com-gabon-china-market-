@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boutique MB Shop | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script src="js/app.js"></script><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="mbshop.html" class="active">MB Shop</a>
+        <a href="tracking.html">Suivi Chine</a>
+      </div>
+      <div class="nav-actions"></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero MB Shop (Version 1 style) -->
+  <section class="hero" style="min-height: 50vh; display: flex; align-items: center; justify-content: flex-start; background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(252,209,22,0.1) 100%);">
+    <div class="container grid grid-2" style="align-items: center; position: relative; z-index: 2;">
+      <div>
+        <span class="badge badge-mbshop mb-md" style="font-size: 1rem;"><script>document.write(ICONS.store)</script> Boutique Officielle</span>
+        <h1 class="mb-md">Bienvenue au <br><span class="text-yellow">MB Shop</span></h1>
+        <p class="text-muted mb-xl" style="font-size: 1.15rem; max-width: 500px;">
+          Votre espace physique à Libreville. Sécurisez vos achats en ligne, récupérez vos colis importés de Chine et découvrez nos exclusivités en magasin.
+        </p>
+        <div class="flex gap-md">
+          <a href="#store-products" class="btn btn-yellow btn-lg">Voir le catalogue</a>
+          <a href="#location" class="btn btn-secondary btn-lg">Nous trouver</a>
+        </div>
+      </div>
+      <div class="card" style="padding: 0; border: none; background: transparent; box-shadow: var(--shadow-glow-yellow);">
+        <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=800" alt="Intérieur Boutique" style="border-radius: var(--radius-xl); height: 400px; width: 100%; object-fit: cover;">
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Grid -->
+  <section class="section container">
+    <div class="section-header">
+      <span class="tag">Nos Services</span>
+      <h2>Pourquoi passer par MB Shop ?</h2>
+    </div>
+    <div class="grid grid-3">
+      <div class="card" style="padding: var(--space-2xl); text-align: center; border-color: var(--green);">
+        <div style="font-size: 3rem; margin-bottom: var(--space-md); color: var(--green-light);"><script>document.write(ICONS.check)</script></div>
+        <h3>Click & Collect</h3>
+        <p class="text-muted mt-sm text-sm">Achetez en ligne sur GCMarket et venez récupérer votre commande en boutique gratuitement.</p>
+      </div>
+      <div class="card" style="padding: var(--space-2xl); text-align: center; border-color: var(--yellow);">
+        <div style="font-size: 3rem; margin-bottom: var(--space-md); color: var(--yellow);"><script>document.write(ICONS.ship)</script></div>
+        <h3>Import Chine Sécurisé</h3>
+        <p class="text-muted mt-sm text-sm">Nous centralisons toutes les commandes depuis la Chine. Suivez votre colis jusqu'à notre boutique.</p>
+      </div>
+      <div class="card" style="padding: var(--space-2xl); text-align: center; border-color: var(--blue);">
+        <div style="font-size: 3rem; margin-bottom: var(--space-md); color: var(--blue-light);"><script>document.write(ICONS.shield)</script></div>
+        <h3>SAV & Garantie</h3>
+        <p class="text-muted mt-sm text-sm">Un problème avec un article MB Shop ? Notre service après-vente sur place s'occupe de tout.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MB Shop Products -->
+  <section id="store-products" class="section container" style="background: var(--bg-glass); border-radius: var(--radius-xl); padding: var(--space-4xl) var(--space-2xl);">
+    <div class="flex-between mb-2xl">
+      <div>
+        <h2 style="display:flex; align-items:center; gap:var(--space-sm);"><script>document.write(ICONS.store)</script> Articles en Boutique</h2>
+        <p class="text-muted">Disponibles immédiatement à Libreville.</p>
+      </div>
+      <a href="catalogue.html?mbshop=true" class="btn btn-secondary">Voir tout</a>
+    </div>
+    
+    <div class="grid grid-4" id="mbShopGrid">
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+    </div>
+  </section>
+
+  <!-- Location Section -->
+  <section id="location" class="section container mt-xl">
+    <div class="grid grid-2" style="background: var(--bg-secondary); border: 1px solid var(--border-glass); border-radius: var(--radius-xl); overflow: hidden;">
+      
+      <div style="padding: var(--space-3xl);">
+        <h2 class="mb-lg" style="display:flex; align-items:center; gap:var(--space-sm);"><script>document.write(ICONS.mapPin)</script> Informations pratiques</h2>
+        
+        <div class="mb-xl">
+          <strong style="color:var(--text-primary); display:block; margin-bottom:var(--space-xs);">Adresse Administrative</strong>
+          <p class="text-secondary">Quartier Louis, Près de la Pharmacie<br>Libreville, Gabon</p>
+        </div>
+
+        <div class="mb-xl">
+          <strong style="color:var(--text-primary); display:block; margin-bottom:var(--space-xs);">Horaires d'ouverture</strong>
+          <ul class="text-secondary" style="list-style:none; padding:0;">
+            <li class="flex-between" style="border-bottom: 1px solid var(--border-glass); padding: 8px 0;"><span>Lundi - Vendredi</span> <strong>08:30 - 18:00</strong></li>
+            <li class="flex-between" style="border-bottom: 1px solid var(--border-glass); padding: 8px 0;"><span>Samedi</span> <strong>09:00 - 15:00</strong></li>
+            <li class="flex-between" style="padding: 8px 0;"><span>Dimanche</span> <strong class="text-error">Fermé</strong></li>
+          </ul>
+        </div>
+
+        <div>
+           <strong style="color:var(--text-primary); display:block; margin-bottom:var(--space-xs);">Contact direct</strong>
+           <p class="text-secondary flex gap-sm align-center mb-sm"><script>document.write(ICONS.phone)</script> +241 01 23 45 67</p>
+           <p class="text-secondary flex gap-sm align-center"><script>document.write(ICONS.mail)</script> contact@mbshop.ga</p>
+        </div>
+      </div>
+
+      <!-- Real Map iframe embed (OpenStreetMap for Gabon) -->
+      <div style="height: 100%; min-height: 400px;">
+        <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=9.43%2C0.38%2C9.46%2C0.41&amp;layer=mapnik&amp;marker=0.39%2C9.44" style="border: none; filter: invert(90%) hue-rotate(180deg);"></iframe>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container text-center">
+      <p class="text-muted">© 2026 GCMarket & MB Shop.</p>
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load MB Shop exclusive products
+      setTimeout(() => {
+        const mbProducts = MOCK_PRODUCTS.filter(p => p.isMbShop).slice(0, 4);
+        document.getElementById('mbShopGrid').innerHTML = mbProducts.map(createProductCard).join('');
+        
+        // Ensure UI updates (Auth)
+        if (typeof AuthManager !== 'undefined') AuthManager.updateUI();
+      }, 300);
+    });
+  </script>
+</body>
+</html>

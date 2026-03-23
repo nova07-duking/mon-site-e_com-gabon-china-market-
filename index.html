@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GCMarket — La première plateforme gabonaise de vente, location et importation.">
+  <title>Accueil | GCMarket</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><script>document.write(ICONS.globe)</script></div>
+        <span>GC<span class="accent">Market</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html">Accueil</a>
+        <a href="catalogue.html">Catalogue</a>
+        <a href="mbshop.html">MB Shop</a>
+        <a href="tracking.html">Suivi Chine</a>
+      </div>
+      <div class="nav-actions">
+        <!-- AuthManager will populate this (Login/Register or Dashboard/Logout) -->
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <span class="badge badge-mbshop" style="margin-bottom: var(--space-md);">
+          <span style="color:var(--green)">GA</span> GABON — <span style="color:var(--error)">CN</span> CHINE
+        </span>
+        <h1>Achetez, Louez & <span class="highlight">Importez</span> en toute confiance</h1>
+        <p>La première plateforme gabonaise de vente et location de véhicules, immobilier, et d'importation directe depuis la Chine. <strong>MB Shop</strong> — votre boutique physique à Libreville.</p>
+        
+        <div class="hero-actions">
+          <a href="catalogue.html" class="btn btn-primary btn-lg">Explorer le catalogue</a>
+          <a href="mbshop.html" class="btn btn-yellow btn-lg">
+             <script>document.write(ICONS.store)</script> MB Shop
+          </a>
+        </div>
+
+        <div class="hero-search">
+          <input type="text" placeholder="Rechercher un véhicule, appartement, article..." id="heroSearchInput">
+          <button class="btn btn-primary" onclick="window.location.href='catalogue.html?search='+document.getElementById('heroSearchInput').value">
+            Rechercher
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Categories -->
+  <section class="section container">
+    <div class="section-header">
+      <span class="tag">Explorez</span>
+      <h2>Catégories Principales</h2>
+    </div>
+    <div class="grid grid-4">
+      <div class="category-card" onclick="window.location.href='catalogue.html?category=vehicule'">
+        <div class="category-icon"><script>document.write(ICONS.car)</script></div>
+        <h3>Véhicules</h3>
+        <p>Achat et location de voitures au Gabon</p>
+      </div>
+      <div class="category-card" onclick="window.location.href='catalogue.html?category=maison'">
+        <div class="category-icon"><script>document.write(ICONS.house)</script></div>
+        <h3>Maisons</h3>
+        <p>Villas et maisons individuelles</p>
+      </div>
+      <div class="category-card" onclick="window.location.href='catalogue.html?category=appartement'">
+        <div class="category-icon"><script>document.write(ICONS.building)</script></div>
+        <h3>Appartements</h3>
+        <p>Location et vente d'appartements</p>
+      </div>
+      <div class="category-card" onclick="window.location.href='catalogue.html?mbshop=true'">
+        <div class="category-icon" style="color: var(--yellow);"><script>document.write(ICONS.store)</script></div>
+        <h3>MB Shop</h3>
+        <p>Articles certifiés boutitque physique</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="section container">
+    <div class="section-header">
+      <span class="tag">Sélection</span>
+      <h2>En vedette cette semaine</h2>
+    </div>
+    <div class="grid grid-3" id="featuredGrid">
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+      <div class="skeleton" style="height: 380px;"></div>
+    </div>
+    <div class="text-center mt-xl" style="margin-top: var(--space-xl);">
+      <a href="catalogue.html" class="btn btn-secondary">Voir tout le catalogue</a>
+    </div>
+  </section>
+
+  <!-- How It Works (Import Chine) -->
+  <section class="section" style="background: var(--bg-glass);">
+    <div class="container">
+      <div class="grid grid-2" style="align-items: center;">
+        <div>
+          <span class="tag">Service Exclusif</span>
+          <h2 style="margin-bottom: var(--space-md);">Importation directe depuis la Chine 🇨🇳</h2>
+          <p class="mb-lg">Profitez de notre réseau logistique. Commandez des articles vérifiés depuis la Chine et suivez votre colis jusqu'à sa réception dans notre boutique MB Shop à Libreville.</p>
+          <ul class="mb-xl" style="display: flex; flex-direction: column; gap: var(--space-md);">
+            <li class="flex" style="gap: var(--space-sm); align-items: flex-start;">
+              <span class="text-green"><script>document.write(ICONS.check)</script></span>
+              <div>
+                <strong>Recherche & Achat</strong>
+                <p class="text-sm">Trouvez l'article ou confiez-nous la recherche.</p>
+              </div>
+            </li>
+            <li class="flex" style="gap: var(--space-sm); align-items: flex-start;">
+              <span class="text-green"><script>document.write(ICONS.check)</script></span>
+              <div>
+                <strong>Logistique & Douane</strong>
+                <p class="text-sm">On gère l'expédition et le dédouanement.</p>
+              </div>
+            </li>
+            <li class="flex" style="gap: var(--space-sm); align-items: flex-start;">
+              <span class="text-green"><script>document.write(ICONS.check)</script></span>
+              <div>
+                <strong>Retrait au MB Shop</strong>
+                <p class="text-sm">Récupérez votre article en toute sécurité.</p>
+              </div>
+            </li>
+          </ul>
+          <a href="tracking.html" class="btn btn-primary">Suivre un colis existant</a>
+        </div>
+        <div class="card" style="padding: var(--space-2xl); border-color: var(--green);">
+           <h3 class="mb-md text-center">Processus de Suivi</h3>
+           <div class="stepper" style="flex-direction: column; padding: 0;">
+             <div class="stepper-progress" style="display:none;"></div>
+             <div class="step completed" style="flex-direction: row; gap: 1rem; margin-bottom: 1rem; width: 100%;">
+               <div class="step-circle" style="width: 32px; height: 32px; font-size: 0.8rem; margin: 0;"><script>document.write(ICONS.check)</script></div>
+               <div class="step-label" style="text-align: left; max-width: none;">1. Commande confirmée</div>
+             </div>
+             <div class="step completed" style="flex-direction: row; gap: 1rem; margin-bottom: 1rem; width: 100%;">
+               <div class="step-circle" style="width: 32px; height: 32px; font-size: 0.8rem; margin: 0;"><script>document.write(ICONS.check)</script></div>
+               <div class="step-label" style="text-align: left; max-width: none;">2. Entrepôt Chine</div>
+             </div>
+             <div class="step active" style="flex-direction: row; gap: 1rem; margin-bottom: 1rem; width: 100%;">
+               <div class="step-circle" style="width: 32px; height: 32px; font-size: 0.8rem; margin: 0;"><script>document.write(ICONS.ship)</script></div>
+               <div class="step-label" style="text-align: left; max-width: none;">3. En transit</div>
+             </div>
+             <div class="step" style="flex-direction: row; gap: 1rem; width: 100%;">
+               <div class="step-circle" style="width: 32px; height: 32px; font-size: 0.8rem; margin: 0;"><script>document.write(ICONS.mapPin)</script></div>
+               <div class="step-label" style="text-align: left; max-width: none;">4. Arrivée Gabon</div>
+             </div>
+           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="nav-logo" style="margin-bottom: var(--space-md);">
+            <div class="logo-icon"><script>document.write(ICONS.globe)</script></div>
+            <span>GC<span class="accent">Market</span></span>
+          </a>
+          <p class="mb-md">La première plateforme de transactions hybrides au Gabon : véhicules, immobilier, et importations directes de Chine livrées au MB Shop.</p>
+          <div class="footer-social">
+            <a href="#" aria-label="Facebook"><script>document.write(ICONS.facebook)</script></a>
+            <a href="#" aria-label="Instagram"><script>document.write(ICONS.instagram)</script></a>
+          </div>
+        </div>
+        <div>
+          <h4>Liens rapides</h4>
+          <ul>
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="catalogue.html">Catalogue</a></li>
+            <li><a href="mbshop.html">MB Shop (Boutique)</a></li>
+            <li><a href="tracking.html">Suivi Colis Chine</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Catégories</h4>
+          <ul>
+            <li><a href="catalogue.html?category=vehicule">Véhicules (Achat/Location)</a></li>
+            <li><a href="catalogue.html?category=maison">Maisons</a></li>
+            <li><a href="catalogue.html?category=appartement">Appartements</a></li>
+            <li><a href="catalogue.html?mbshop=true">Articles MB Shop</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Boutique Physique</h4>
+          <p><strong style="color:var(--text-primary)">MB Shop</strong><br>
+             Quartier Louis, Près de la Pharmacie<br>
+             Libreville, Gabon</p>
+          <p style="margin-top: var(--space-md);">
+             <strong>Email:</strong> contact@mbshop.ga<br>
+             <strong>Tél:</strong> +241 01 23 45 67
+          </p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 GCMarket & MB Shop. Tous droits réservés.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+  <script src="js/mock-data.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const products = await apiFetch('/products');
+        const featured = products.slice(0, 3);
+        
+        if (featured.length > 0) {
+          document.getElementById('featuredGrid').innerHTML = featured.map(createProductCard).join('');
+        } else {
+          document.getElementById('featuredGrid').innerHTML = '<p class="text-center" style="grid-column: 1/-1;">Aucun produit disponible pour le moment.</p>';
+        }
+      } catch (error) {
+        console.error(error);
+        document.getElementById('featuredGrid').innerHTML = '<p class="text-error text-center" style="grid-column: 1/-1;">Erreur lors du chargement des produits.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

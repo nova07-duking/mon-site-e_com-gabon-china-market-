@@ -1,0 +1,5 @@
+Dockerfile.backend
+Dockerfile.frontend
+docker-compose.yml
+.vscode/
+web/
