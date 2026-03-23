@@ -142,6 +142,22 @@
         </div>
       </div>
 
+      <!-- Tab: MB Shop -->
+      <div id="tab-mbshop" class="tab-content hidden">
+        <div class="flex-between mb-xl">
+          <h2 style="margin:0;"><script>document.write(ICONS.store)</script> Gestion des Articles MB Shop</h2>
+          <button class="btn btn-primary btn-sm" onclick="showToast('Ajout via Catalogue prochainement', 'info')">Ajouter au MB Shop</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr><th>Produit</th><th>Prix</th><th>Stock</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="adminMbShopTable"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Tab: Tracking (China Imports) -->
       <div id="tab-tracking" class="tab-content hidden">
         <div class="flex-between mb-xl">
@@ -277,6 +293,9 @@
             document.getElementById('adminTrackingList').innerHTML = '<p class="text-muted">Aucune commande de Chine en attente.</p>';
         }
 
+        // MB Shop Management Table
+        renderAdminMbShop(allProducts.filter(p => p.isMbShop));
+
       } catch (err) {
         console.error(err);
         showToast('Erreur de chargement des données admin', 'error');
@@ -292,6 +311,54 @@
         } catch (err) {
             showToast('Erreur lors de la mise à jour', 'error');
         }
+    }
+
+    function renderAdminMbShop(items) {
+      document.getElementById('adminMbShopTable').innerHTML = items.map(p => `
+        <tr>
+          <td>
+            <div class="flex gap-sm align-center">
+              <img src="${p.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">
+              <span>${p.title}</span>
+            </div>
+          </td>
+          <td>${formatPrice(p.price)}</td>
+          <td>
+            <span class="badge ${p.available ? 'badge-green' : 'badge-red'}">${p.available ? 'En Stock' : 'Rupture'}</span>
+          </td>
+          <td>
+            <div class="flex gap-xs">
+              <button class="btn btn-sm btn-secondary" onclick="toggleProductStock(${p.id}, ${p.available})">
+                ${p.available ? 'Mettre hors stock' : 'Remettre en stock'}
+              </button>
+              <button class="btn btn-sm" style="color:var(--error);" onclick="deleteProduct(${p.id})">${icon('trash')}</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function toggleProductStock(id, currentStatus) {
+      try {
+        const product = (await ProductManager.getAll()).find(p => p.id === id);
+        product.available = !currentStatus;
+        await ProductManager.update(id, product);
+        showToast('Stock mis à jour', 'success');
+        location.reload();
+      } catch (err) {
+        showToast('Erreur lors de la mise à jour', 'error');
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Supprimer définitivement ce produit ?')) return;
+      try {
+        await ProductManager.delete(id);
+        showToast('Produit supprimé', 'success');
+        location.reload();
+      } catch (err) {
+        showToast('Erreur lors de la suppression', 'error');
+      }
     }
   </script>
 </body>

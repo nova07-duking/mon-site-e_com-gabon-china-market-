@@ -249,7 +249,12 @@
             <td>${p.quantity}</td>
             <td>${p.available ? `<span class="badge badge-green">En ligne</span>` : `<span class="badge badge-red">Rupture</span>`}</td>
             <td>
-              <button class="btn btn-secondary btn-sm" onclick="showToast('Edition bientôt disponible', 'info')">${icon('edit')}</button>
+              <div class="flex gap-xs">
+                <button class="btn btn-secondary btn-sm" onclick="toggleSellerProductStock(${p.id}, ${p.available})">
+                    ${p.available ? 'Rupture' : 'Remettre'}
+                </button>
+                <button class="btn btn-sm" style="color:var(--error);" onclick="deleteSellerProduct(${p.id})">${icon('trash')}</button>
+              </div>
             </td>
           </tr>
         `).join('');
@@ -322,6 +327,31 @@
             showToast('Erreur : ' + error.message, 'error');
         }
     });
+
+    async function toggleSellerProductStock(id, currentStatus) {
+        try {
+            // On récupère le produit complet pour ne pas perdre les autres champs
+            const products = await ProductManager.getBySeller(AuthManager.currentUser.id);
+            const product = products.find(p => p.id === id);
+            product.available = !currentStatus;
+            await ProductManager.update(id, product);
+            showToast('Statut mis à jour', 'success');
+            location.reload();
+        } catch (err) {
+            showToast('Erreur lors de la mise à jour', 'error');
+        }
+    }
+
+    async function deleteSellerProduct(id) {
+        if (!confirm('Supprimer cette annonce définitivement ?')) return;
+        try {
+            await ProductManager.delete(id);
+            showToast('Annonce supprimée', 'success');
+            location.reload();
+        } catch (err) {
+            showToast('Erreur lors de la suppression', 'error');
+        }
+    }
   </script>
 </body>
 </html>

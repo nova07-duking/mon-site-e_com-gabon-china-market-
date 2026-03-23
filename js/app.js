@@ -223,6 +223,13 @@ const ProductManager = {
     });
   },
 
+  async update(productId, productData) {
+    return await apiFetch(`/products/${productId}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData)
+    });
+  },
+
   async delete(productId) {
     return await apiFetch(`/products/${productId}`, {
       method: 'DELETE'
