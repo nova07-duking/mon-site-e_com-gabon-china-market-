@@ -34,9 +34,9 @@
     <aside class="sidebar">
       <div class="sidebar-menu">
         <div class="sidebar-section">Boutique</div>
-        <a href="index.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
-          <span class="icon">${icon('home')}</span> Retour au site (Public)
-        </a>
+        <div class="sidebar-item" onclick="window.location.href='index.html'">
+          <span class="icon"><script>document.write(ICONS.home)</script></span> Retour au site
+        </div>
         <div class="sidebar-item active" onclick="showTab('overview')">
           <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
         </div>
@@ -141,6 +141,10 @@
                   <!-- JS will populate options based on sellerType -->
                 </select>
               </div>
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">URL de l'image du bien</label>
+                <input type="url" id="addImageUrl" class="form-input" placeholder="https://exemple.com/image.jpg">
+              </div>
             </div>
 
             <div class="form-group">
@@ -150,6 +154,26 @@
 
             <button type="submit" class="btn btn-primary" style="width: 100%;">Publier l'annonce</button>
           </form>
+        </div>
+      </div>
+
+      <!-- Tab: Configuration -->
+      <div id="tab-profile" class="tab-content hidden">
+        <h2 class="mb-xl">${icon('settings')} Configuration du profil</h2>
+        <div class="card" style="padding: var(--space-2xl); max-width: 600px;">
+          <div class="form-group">
+            <label class="form-label">Nom d'utilisateur</label>
+            <input type="text" id="confUsername" class="form-input" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="confEmail" class="form-input" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Spécialité Vendeur</label>
+            <input type="text" id="confType" class="form-input" disabled>
+          </div>
+          <p class="text-sm text-muted">Ces informations sont liées à votre compte et ne peuvent être modifiées que par l'administrateur.</p>
         </div>
       </div>
 
@@ -177,6 +201,15 @@
 
       const user = AuthManager.currentUser;
       document.getElementById('sellerName').textContent = user.username;
+      
+      // Remplissage de l'onglet Configuration
+      if (document.getElementById('confUsername')) {
+          document.getElementById('confUsername').value = user.username;
+          document.getElementById('confEmail').value = user.email;
+          const typeLabelConf = user.sellerType === 'vehicule' ? 'Véhicules (Auto/Moto)' : 
+                               user.sellerType === 'immo' ? 'Immobilier (Maisons/Appartements)' : 'Général';
+          document.getElementById('confType').value = typeLabelConf;
+      }
       
       const typeLabel = user.sellerType === 'vehicule' ? 'Véhicules (Auto/Moto)' : 
                         user.sellerType === 'immo' ? 'Immobilier (Maisons/Appartements)' : 'Général';
@@ -247,7 +280,7 @@
             description: e.target.querySelector('textarea').value,
             type: user.sellerType === 'vehicule' ? 'VEHICULE' : (user.sellerType === 'immo' ? 'MAISON' : 'DIVERS'),
             seller: { id: user.id },
-            image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400' // Placeholder
+            image: document.getElementById('addImageUrl').value || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400'
         };
 
         try {
@@ -255,7 +288,8 @@
             showToast('Annonce publiée avec succès !', 'success');
             setTimeout(() => window.location.reload(), 1500);
         } catch (error) {
-            showToast('Erreur lors de la publication', 'error');
+            console.error('Erreur API:', error);
+            showToast('Erreur : ' + error.message, 'error');
         }
     });
   </script>

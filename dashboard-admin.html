@@ -33,9 +33,9 @@
     <aside class="sidebar">
       <div class="sidebar-menu">
         <div class="sidebar-section">Plateforme</div>
-        <a href="index.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
-          <span class="icon">${icon('home')}</span> Retour au site (Public)
-        </a>
+        <div class="sidebar-item" onclick="window.location.href='index.html'">
+          <span class="icon"><script>document.write(ICONS.home)</script></span> Retour au site
+        </div>
         <div class="sidebar-item active" onclick="showTab('overview')">
           <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
         </div>
