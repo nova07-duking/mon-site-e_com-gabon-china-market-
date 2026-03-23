@@ -56,6 +56,12 @@ public class Product {
     
     private Boolean isMbShop = false;
     
+    private Double promotionPrice; // Prix après promotion si applicable
+    
+    private String size; // e.g. M, L, XL ou 100m²
+    
+    private String currency = "FCFA"; // Devise (défaut: FCFA)
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;

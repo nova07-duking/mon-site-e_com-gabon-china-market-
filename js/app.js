@@ -538,8 +538,11 @@ function showToast(message, type = 'success', duration = 4000) {
 // ── Product Card Generator ──
 function createProductCard(product) {
   const isUnavailable = !product.available;
-  const priceLabel = product.priceLabel || '';
+  const currency = product.currency || 'FCFA';
+  const hasPromo = product.promotionPrice && product.promotionPrice < product.price;
+  const displayPrice = hasPromo ? product.promotionPrice : product.price;
   const sellerName = product.seller?.username || product.sellerName || 'Vendeur';
+  const sizeTag = product.size ? `<span class="badge badge-secondary" style="font-size:0.7rem; margin-right:5px;">${product.size}</span>` : '';
   
   return `
     <div class="card ${isUnavailable ? 'unavailable' : ''}" data-id="${product.id}">
@@ -552,14 +555,17 @@ function createProductCard(product) {
         </span>
       </div>
       <div class="card-body">
-        <h3 class="card-title">${product.title}</h3>
+        <div style="display:flex; align-items:center;">${sizeTag}<h3 class="card-title" style="margin:0;">${product.title}</h3></div>
         <p class="card-text">${product.description}</p>
-        <div class="card-price">${formatPrice(product.price)} <span>${priceLabel}</span></div>
+        <div class="card-price">
+          ${hasPromo ? `<span style="text-decoration:line-through; font-size:0.8rem; color:var(--text-muted); margin-right:8px;">${formatPrice(product.price)}</span>` : ''}
+          ${formatPrice(displayPrice)} <span style="font-size:0.7rem; color:var(--yellow);">${currency}</span>
+        </div>
         <div class="card-footer">
           <span class="text-sm text-muted">${sellerName}</span>
           ${isUnavailable
             ? `<button class="btn btn-sm disabled" disabled>${icon('x','icon-sm')} Indisponible</button>`
-            : `<a href="product.html?id=${product.id}" class="btn btn-primary btn-sm">${icon('eye','icon-sm')} Voir détails</a>`
+            : `<a href="product.html?id=${product.id}" class="btn btn-primary btn-sm">${icon('eye','icon-sm')} Détails</a>`
           }
         </div>
       </div>

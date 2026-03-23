@@ -146,7 +146,7 @@
       <div id="tab-mbshop" class="tab-content hidden">
         <div class="flex-between mb-xl">
           <h2 style="margin:0;"><script>document.write(ICONS.store)</script> Gestion des Articles MB Shop</h2>
-          <button class="btn btn-primary btn-sm" onclick="showToast('Ajout via Catalogue prochainement', 'info')">Ajouter au MB Shop</button>
+          <button class="btn btn-primary btn-sm" onclick="showTab('add-mbproduct')"><script>document.write(ICONS.plus)</script> Nouvel article MB Shop</button>
         </div>
         <div class="table-wrapper">
           <table class="table">
@@ -158,7 +158,72 @@
         </div>
       </div>
 
-      <!-- Tab: Tracking (China Imports) -->
+      <!-- Tab: Add MB Product -->
+      <div id="tab-add-mbproduct" class="tab-content hidden">
+        <div class="flex-between mb-xl">
+          <h2>Nouvel Article MB Shop</h2>
+          <button class="btn btn-secondary btn-sm" onclick="showTab('mbshop')">Retour à la liste</button>
+        </div>
+        <div class="card" style="padding: var(--space-2xl); max-width: 800px;">
+          <form id="addAdminMbProductForm">
+            <div class="grid grid-2">
+              <div class="form-group">
+                <label class="form-label">Nom du produit</label>
+                <input type="text" class="form-input" required placeholder="Ex: Climatiseur Split 1.5 CV">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Prix de base</label>
+                <input type="number" class="form-input" required placeholder="250000">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Prix Promo (Optionnel)</label>
+                <input type="number" id="adminPromoPrice" class="form-input" placeholder="Prix après réduction">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Devise</label>
+                <select class="form-select" id="adminCurrency">
+                  <option value="FCFA">FCFA (XAF)</option>
+                  <option value="EUR">Euro (€)</option>
+                  <option value="USD">Dollar ($)</option>
+                  <option value="CNY">Yuan (¥)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Catégorie</label>
+                <select class="form-select" id="adminCategorySelect">
+                  <option value="electronique">Électronique</option>
+                  <option value="mode">Mode & Beauté</option>
+                  <option value="maison">Maison & Déco</option>
+                  <option value="divers">Divers</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Taille / Dimensions</label>
+                <input type="text" id="adminSize" class="form-input" placeholder="Ex: L, XL, 40 pouces...">
+              </div>
+
+              <div class="form-group" style="grid-column: span 2;">
+                <label class="form-label">Image du produit</label>
+                <input type="file" id="adminProductImageFile" class="form-input" accept="image/*" style="padding:10px;">
+                <div id="adminImagePreview" style="margin-top: 10px; display: none;">
+                  <img src="" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description MB Shop</label>
+              <textarea class="form-textarea" required placeholder="Détails du produit disponible en boutique..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Enregistrer l'article MB Shop</button>
+          </form>
+        </div>
+      </div>
       <div id="tab-tracking" class="tab-content hidden">
         <div class="flex-between mb-xl">
           <h2 style="margin:0;"><script>document.write(ICONS.ship)</script> Gestion Logistique & Imports</h2>
@@ -360,6 +425,58 @@
         showToast('Erreur lors de la suppression', 'error');
       }
     }
+
+    // Modal behavior for adding MB product
+    document.getElementById('adminProductImageFile')?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('adminImagePreview');
+                preview.style.display = 'block';
+                preview.querySelector('img').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('addAdminMbProductForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = AuthManager.currentUser;
+        const fileInput = document.getElementById('adminProductImageFile');
+        let imageData = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400';
+
+        if (fileInput.files && fileInput.files[0]) {
+            imageData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(fileInput.files[0]);
+            });
+        }
+
+        const formData = {
+            title: e.target.querySelector('input[type="text"]').value,
+            price: parseFloat(e.target.querySelector('input[type="number"]').value),
+            promotionPrice: document.getElementById('adminPromoPrice').value ? parseFloat(document.getElementById('adminPromoPrice').value) : null,
+            size: document.getElementById('adminSize').value || null,
+            currency: document.getElementById('adminCurrency').value,
+            description: e.target.querySelector('textarea').value,
+            category: document.getElementById('adminCategorySelect').value,
+            type: 'DIVERS',
+            mode: 'VENTE',
+            isMbShop: true,
+            seller: { id: user.id },
+            image: imageData
+        };
+
+        try {
+            await ProductManager.create(formData);
+            showToast('Article MB Shop ajouté !', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+            showToast('Erreur lors de l\'ajout', 'error');
+        }
+    });
   </script>
 </body>
 </html>

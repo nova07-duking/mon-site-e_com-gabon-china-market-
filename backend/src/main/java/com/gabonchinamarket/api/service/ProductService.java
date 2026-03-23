@@ -45,6 +45,9 @@ public class ProductService {
         product.setTitle(productDetails.getTitle());
         product.setDescription(productDetails.getDescription());
         product.setPrice(productDetails.getPrice());
+        product.setPromotionPrice(productDetails.getPromotionPrice());
+        product.setSize(productDetails.getSize());
+        product.setCurrency(productDetails.getCurrency());
         product.setQuantity(productDetails.getQuantity());
         product.setAvailable(productDetails.getQuantity() > 0);
         product.setUpdatedAt(LocalDateTime.now());
