@@ -111,29 +111,28 @@
       available: false
     };
 
-    function updateCatalogue() {
+    async function updateCatalogue() {
       const grid = document.getElementById('catalogueGrid');
       const noResults = document.getElementById('noResults');
       const count = document.getElementById('resultCount');
       
-      const filtered = filterProducts(MOCK_PRODUCTS, currentFilters);
-      
-      if (filtered.length === 0) {
-        grid.innerHTML = '';
-        noResults.classList.remove('hidden');
-        count.textContent = '0 résultat trouvé';
-      } else {
-        noResults.classList.add('hidden');
-        grid.innerHTML = filtered.map(createProductCard).join('');
-        count.textContent = `${filtered.length} résultat${filtered.length > 1 ? 's' : ''} trouvé${filtered.length > 1 ? 's' : ''}`;
-      }
-      
-      // Re-initialize SVG icons added dynamically
-      document.querySelectorAll('.btn.disabled').forEach(btn => {
-        if (!AuthManager.canBuy()) {
-           btn.title = 'Connectez-vous pour acheter';
+      try {
+        const allProducts = await ProductManager.getAll();
+        const filtered = filterProducts(allProducts, currentFilters);
+        
+        if (filtered.length === 0) {
+          grid.innerHTML = '';
+          noResults.classList.remove('hidden');
+          count.textContent = '0 résultat trouvé';
+        } else {
+          noResults.classList.add('hidden');
+          grid.innerHTML = filtered.map(createProductCard).join('');
+          count.textContent = `${filtered.length} résultat${filtered.length > 1 ? 's' : ''} trouvé${filtered.length > 1 ? 's' : ''}`;
         }
-      });
+      } catch (err) {
+        console.error(err);
+        showToast('Erreur de chargement du catalogue', 'error');
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {

@@ -47,6 +47,7 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
     
+    @Column(columnDefinition = "LONGTEXT")
     private String image;
     
     private Boolean available = true;

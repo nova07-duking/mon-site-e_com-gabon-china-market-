@@ -142,8 +142,11 @@
                 </select>
               </div>
               <div class="form-group" style="grid-column: span 2;">
-                <label class="form-label">URL de l'image du bien</label>
-                <input type="url" id="addImageUrl" class="form-input" placeholder="https://exemple.com/image.jpg">
+                <label class="form-label">Image du bien (depuis vos dossiers)</label>
+                <input type="file" id="productImageFile" class="form-input" accept="image/*" style="padding: 10px;">
+                <div id="imagePreview" style="margin-top: 10px; display: none;">
+                  <img src="" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                </div>
               </div>
             </div>
 
@@ -268,10 +271,37 @@
       }
     });
 
+    // Aperçu de l'image
+    document.getElementById('productImageFile')?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                preview.style.display = 'block';
+                preview.querySelector('img').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
     // Gestion de l'ajout de produit
     document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const user = AuthManager.currentUser;
+        
+        const fileInput = document.getElementById('productImageFile');
+        let imageData = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400'; // Fallback
+        
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            imageData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
         const formData = {
             title: e.target.querySelector('input[type="text"]').value,
             price: parseFloat(e.target.querySelector('input[type="number"]').value),
@@ -280,7 +310,7 @@
             description: e.target.querySelector('textarea').value,
             type: user.sellerType === 'vehicule' ? 'VEHICULE' : (user.sellerType === 'immo' ? 'MAISON' : 'DIVERS'),
             seller: { id: user.id },
-            image: document.getElementById('addImageUrl').value || 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400'
+            image: imageData
         };
 
         try {

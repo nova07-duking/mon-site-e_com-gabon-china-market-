@@ -252,6 +252,19 @@ const OrderManager = {
   }
 };
 
+// ── Gestion des Utilisateurs (Admin) ──
+const UserManager = {
+  async getAll() {
+    return await apiFetch('/auth/users'); // On devra ajouter cet endpoint
+  },
+
+  async delete(userId) {
+    return await apiFetch(`/auth/users/${userId}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
 // ── Notification Manager ──
 const NotificationManager = {
   _notifications: null,
@@ -519,11 +532,12 @@ function showToast(message, type = 'success', duration = 4000) {
 function createProductCard(product) {
   const isUnavailable = !product.available;
   const priceLabel = product.priceLabel || '';
+  const sellerName = product.seller?.username || product.sellerName || 'Vendeur';
   
   return `
     <div class="card ${isUnavailable ? 'unavailable' : ''}" data-id="${product.id}">
       <div class="card-img-wrapper">
-        <img src="${product.image}" alt="${product.title}" loading="lazy">
+        <img src="${product.image}" alt="${product.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600'">
         ${product.isMbShop ? `<span class="badge badge-mbshop" style="position:absolute;top:12px;left:12px;z-index:2;">${icon('store','icon-sm')} MB Shop</span>` : ''}
         ${isUnavailable ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;"><span class="badge badge-red" style="font-size:0.85rem;padding:8px 16px;">${icon('alert','icon-sm')} Rupture de stock</span></div>` : ''}
         <span class="badge ${product.mode === 'location' ? 'badge-blue' : 'badge-green'}" style="position:absolute;top:12px;right:12px;z-index:2;">
@@ -535,7 +549,7 @@ function createProductCard(product) {
         <p class="card-text">${product.description}</p>
         <div class="card-price">${formatPrice(product.price)} <span>${priceLabel}</span></div>
         <div class="card-footer">
-          <span class="text-sm text-muted">${product.sellerName}</span>
+          <span class="text-sm text-muted">${sellerName}</span>
           ${isUnavailable
             ? `<button class="btn btn-sm disabled" disabled>${icon('x','icon-sm')} Indisponible</button>`
             : `<a href="product.html?id=${product.id}" class="btn btn-primary btn-sm">${icon('eye','icon-sm')} Voir détails</a>`

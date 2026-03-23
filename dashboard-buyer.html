@@ -167,7 +167,7 @@
       if (event && event.currentTarget) event.currentTarget.classList.add('active');
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       AuthManager.init();
       if (!AuthManager.isLoggedIn() || (!AuthManager.hasRole('ACHETEUR') && !AuthManager.isAdmin())) {
         window.location.href = 'login.html';
@@ -181,73 +181,83 @@
       document.getElementById('profName').value = user.username;
       document.getElementById('profEmail').value = user.email;
 
-      const myOrders = MOCK_ORDERS.filter(o => o.buyer === user.username);
-      const myRentals = myOrders.filter(o => o.type === 'location');
-      const myChinaOrders = myOrders.filter(o => o.type === 'commande_chine');
+      document.getElementById('profName').value = user.username;
+      document.getElementById('profEmail').value = user.email;
 
-      document.getElementById('statOrders').textContent = myOrders.length;
-      document.getElementById('statRentals').textContent = myRentals.length;
-      document.getElementById('statTracking').textContent = myChinaOrders.length;
+      // Chargement dynamique des données
+      try {
+        const myOrders = await OrderManager.getByBuyer(user.id);
+        const myRentals = myOrders.filter(o => o.mode === 'LOCATION'); // Backend uses uppercase
+        const myChinaOrders = myOrders.filter(o => o.type === 'COMMANDE_CHINE');
 
-      // Table Row Generator
-      const createOrderRow = (o) => `
-        <tr>
-          <td>#${o.id}</td>
-          <td>${o.productTitle}</td>
-          <td><span class="badge ${o.type === 'commande_chine' ? 'badge-yellow' : o.type === 'location' ? 'badge-blue' : 'badge-green'}">${o.type === 'commande_chine' ? 'Chine' : o.type === 'location' ? 'Location' : 'Achat'}</span></td>
-          <td>${formatPrice(o.totalPrice)}</td>
-          <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
-          <td style="color: var(--text-muted); font-size: 0.85rem;">${o.date}</td>
-        </tr>
-      `;
+        document.getElementById('statOrders').textContent = myOrders.length;
+        document.getElementById('statRentals').textContent = myRentals.length;
+        document.getElementById('statTracking').textContent = myChinaOrders.length;
 
-      document.getElementById('recentOrdersTable').innerHTML = myOrders.slice(0, 3).map(createOrderRow).join('');
-      
-      document.getElementById('allOrdersTable').innerHTML = myOrders.map(o => `
-        <tr>
-          <td>#${o.id}</td>
-          <td>${o.productTitle}</td>
-          <td style="color: var(--yellow); font-weight: 600;">${formatPrice(o.totalPrice)}</td>
-          <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
-          <td><button class="btn btn-sm btn-secondary" onclick="showToast('Facture téléchargée', 'success')">Facture</button></td>
-        </tr>
-      `).join('');
+        // Table Row Generator
+        const createOrderRow = (o) => `
+            <tr>
+            <td>#${o.id}</td>
+            <td>${o.product?.title || 'Article inconnu'}</td>
+            <td><span class="badge ${o.type === 'COMMANDE_CHINE' ? 'badge-yellow' : o.mode === 'LOCATION' ? 'badge-blue' : 'badge-green'}">${o.type === 'COMMANDE_CHINE' ? 'Chine' : o.mode === 'LOCATION' ? 'Location' : 'Achat'}</span></td>
+            <td>${formatPrice(o.totalPrice)}</td>
+            <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
+            <td style="color: var(--text-muted); font-size: 0.85rem;">${new Date(o.createdAt).toLocaleDateString()}</td>
+            </tr>
+        `;
 
-      // Rentals
-      document.getElementById('rentalsList').innerHTML = myRentals.map(r => `
-        <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--blue);">
-          <h3 class="mb-sm">${r.productTitle}</h3>
-          <p class="text-sm text-muted mb-md">Début : ${r.date} — Prochain paiement dans 12 jours</p>
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-             <span style="font-weight: 700; color: var(--yellow);">${formatPrice(r.totalPrice)}/mois</span>
-             <span class="badge badge-blue">En cours</span>
-          </div>
-        </div>
-      `).join('');
+        document.getElementById('recentOrdersTable').innerHTML = myOrders.slice(0, 3).map(createOrderRow).join('');
+        
+        document.getElementById('allOrdersTable').innerHTML = myOrders.map(o => `
+            <tr>
+            <td>#${o.id}</td>
+            <td>${o.product?.title || 'Article inconnu'}</td>
+            <td style="color: var(--yellow); font-weight: 600;">${formatPrice(o.totalPrice)}</td>
+            <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
+            <td><button class="btn btn-sm btn-secondary" onclick="showToast('Facture téléchargée', 'success')">Facture</button></td>
+            </tr>
+        `).join('');
 
-      // Tracking
-      document.getElementById('buyerTrackingList').innerHTML = myChinaOrders.map(c => `
-        <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--yellow);">
-          <div style="display:flex; justify-content:space-between; margin-bottom: var(--space-lg);">
-            <div>
-              <h3 class="mb-xs text-yellow">N° de suivi: CN-2026-88431</h3>
-              <p class="text-sm">${c.productTitle}</p>
+        // Rentals
+        document.getElementById('rentalsList').innerHTML = myRentals.length > 0 ? myRentals.map(r => `
+            <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--blue);">
+            <h3 class="mb-sm">${r.product?.title || 'Article inconnu'}</h3>
+            <p class="text-sm text-muted mb-md">Début : ${new Date(r.createdAt).toLocaleDateString()} — Prochain paiement bientôt</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight: 700; color: var(--yellow);">${formatPrice(r.totalPrice)}/mois</span>
+                <span class="badge badge-blue">En cours</span>
             </div>
-            <span class="badge badge-yellow">Expédié</span>
-          </div>
-          <div class="stepper" style="padding: 0; position: relative;">
-            <div class="stepper-progress" style="top: 24px; width: 50%;"></div>
-            <div class="step completed"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
-            <div class="step completed"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
-            <div class="step active"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
-            <div class="step"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
-            <div class="step"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
-          </div>
-          <div class="text-right" style="margin-top: var(--space-md);">
-            <a href="tracking.html?id=CN-2026-88431" class="btn btn-secondary btn-sm">Détails ></a>
-          </div>
-        </div>
-      `).join('');
+            </div>
+        `).join('') : '<p class="text-muted">Aucune location en cours.</p>';
+
+        // Tracking (Mocked as real tracking requires specific N° from tracker)
+        document.getElementById('buyerTrackingList').innerHTML = myChinaOrders.length > 0 ? myChinaOrders.map(c => `
+            <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--yellow);">
+            <div style="display:flex; justify-content:space-between; margin-bottom: var(--space-lg);">
+                <div>
+                <h3 class="mb-xs text-yellow">N° de suivi: COMMANDE-#${c.id}</h3>
+                <p class="text-sm">${c.product?.title || 'Article inconnu'}</p>
+                </div>
+                <span class="badge badge-yellow">${getStatusLabel(c.status)}</span>
+            </div>
+            <div class="stepper" style="padding: 0; position: relative;">
+                <div class="stepper-progress" style="top: 24px; width: 40%;"></div>
+                <div class="step completed"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+                <div class="step completed"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+                <div class="step active"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+                <div class="step"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+                <div class="step"><div class="step-circle" style="width: 24px; height: 24px;"></div></div>
+            </div>
+            <div class="text-right" style="margin-top: var(--space-md);">
+                <a href="tracking.html" class="btn btn-secondary btn-sm">Suivre ></a>
+            </div>
+            </div>
+        `).join('') : '<p class="text-muted">Aucune commande de Chine en cours.</p>';
+
+      } catch (err) {
+          console.error(err);
+          showToast('Erreur de chargement des commandes', 'error');
+      }
     });
   </script>
 </body>

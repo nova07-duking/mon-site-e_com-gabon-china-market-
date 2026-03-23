@@ -136,15 +136,20 @@
 
   <script src="js/mock-data.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      AuthManager.init();
       // Load MB Shop exclusive products
-      setTimeout(() => {
-        const mbProducts = MOCK_PRODUCTS.filter(p => p.isMbShop).slice(0, 4);
-        document.getElementById('mbShopGrid').innerHTML = mbProducts.map(createProductCard).join('');
-        
-        // Ensure UI updates (Auth)
-        if (typeof AuthManager !== 'undefined') AuthManager.updateUI();
-      }, 300);
+      try {
+        const products = await ProductManager.getAll();
+        const mbProducts = products.filter(p => p.isMbShop).slice(0, 4);
+        if (mbProducts.length > 0) {
+            document.getElementById('mbShopGrid').innerHTML = mbProducts.map(createProductCard).join('');
+        } else {
+            document.getElementById('mbShopGrid').innerHTML = '<p class="text-center" style="grid-column: 1/-1;">Aucun article MB Shop pour le moment.</p>';
+        }
+      } catch (err) {
+          console.error(err);
+      }
     });
   </script>
 </body>

@@ -229,6 +229,16 @@ public class AuthController {
         
         return ResponseEntity.ok(new MessageResponse("Mot de passe modifié avec succès !"));
     }
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userRepository.findAll());
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        userRepository.deleteById(id);
+        return ResponseEntity.ok(new MessageResponse("Utilisateur supprimé avec succès."));
+    }
 }
 
 @Data
@@ -281,8 +291,9 @@ class JwtResponse {
     }
 }
 
-@Data
 class MessageResponse {
     private String message;
     public MessageResponse(String message) { this.message = message; }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 }

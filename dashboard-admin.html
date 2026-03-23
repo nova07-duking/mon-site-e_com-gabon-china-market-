@@ -200,76 +200,99 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       AuthManager.init();
       if (!AuthManager.isLoggedIn() || !AuthManager.isAdmin()) {
         window.location.href = 'login.html';
         return;
       }
 
-      // Populate Overview Stats
-      const users = Object.values(MOCK_USERS);
-      document.getElementById('statUsers').textContent = users.length;
-      document.getElementById('statProducts').textContent = MOCK_PRODUCTS.length;
-      document.getElementById('statMbShop').textContent = MOCK_PRODUCTS.filter(p => p.isMbShop).length;
-      document.getElementById('statOrders').textContent = MOCK_ORDERS.length;
+      // Chargement des données réelles
+      try {
+        const [users, allProducts, allOrders] = await Promise.all([
+          UserManager.getAll(),
+          ProductManager.getAll(),
+          OrderManager.getAll()
+        ]);
 
-      // Users Tables
-      document.getElementById('recentUsersTable').innerHTML = users.map(u => `
-        <tr>
-          <td>${u.username}</td>
-          <td><span class="badge ${u.role === 'ADMIN' ? 'badge-red' : u.role === 'VENDEUR' ? 'badge-yellow' : 'badge-blue'}">${u.role}</span></td>
-          <td>${u.joinDate}</td>
-        </tr>
-      `).join('');
+        document.getElementById('statUsers').textContent = users.length;
+        document.getElementById('statProducts').textContent = allProducts.length;
+        document.getElementById('statMbShop').textContent = allProducts.filter(p => p.isMbShop).length;
+        document.getElementById('statOrders').textContent = allOrders.length;
 
-      document.getElementById('allUsersTable').innerHTML = users.map(u => `
-        <tr>
-          <td>#${u.id}</td>
-          <td><strong>${u.username}</strong></td>
-          <td>${u.email}</td>
-          <td><span class="badge ${u.role === 'ADMIN' ? 'badge-red' : u.role === 'VENDEUR' ? 'badge-yellow' : 'badge-blue'}">${u.role}</span></td>
-          <td>${u.role === 'VENDEUR' ? `<span class="badge badge-green">${u.sellerType === 'vehicule' ? 'Véhicule' : 'Immo'}</span>` : '-'}</td>
-          <td>${u.joinDate}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" onclick="confirmDeleteUser(${u.id}, '${u.username}')" style="color:var(--error); border-color:var(--error);">${icon('trash')} Supprimer</button>
-          </td>
-        </tr>
-      `).join('');
+        // Users Tables
+        document.getElementById('recentUsersTable').innerHTML = users.slice(-5).reverse().map(u => `
+          <tr>
+            <td>${u.username}</td>
+            <td><span class="badge ${u.roles?.some(r => r.name === 'ROLE_ADMIN') ? 'badge-red' : u.roles?.some(r => r.name === 'ROLE_VENDEUR') ? 'badge-yellow' : 'badge-blue'}">${u.roles?.[0]?.name?.replace('ROLE_','') || 'USER'}</span></td>
+            <td>${new Date(u.createdAt || Date.now()).toLocaleDateString()}</td>
+          </tr>
+        `).join('');
 
-      // Tracking Table for Admin
-      const trackingData = Object.entries(MOCK_TRACKING)[0];
-      if (trackingData) {
-        const [trId, t] = trackingData;
-        document.getElementById('adminTrackingList').innerHTML = `
-          <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--green);">
-            <div class="flex-between mb-lg">
-              <div>
-                <h3 class="mb-xs text-green">N°: ${trId}</h3>
-                <p class="text-sm">Client: ${MOCK_ORDERS.find(o => o.id === t.orderId)?.buyer || 'Inconnu'} | Article: ${t.product}</p>
-              </div>
-              <div>
-                <span class="badge badge-yellow mr-sm">${getStatusLabel(t.status)}</span>
-              </div>
+        document.getElementById('allUsersTable').innerHTML = users.map(u => `
+          <tr>
+            <td>#${u.id}</td>
+            <td><strong>${u.username}</strong></td>
+            <td>${u.email}</td>
+            <td><span class="badge ${u.roles?.some(r => r.name === 'ROLE_ADMIN') ? 'badge-red' : u.roles?.some(r => r.name === 'ROLE_VENDEUR') ? 'badge-yellow' : 'badge-blue'}">${u.roles?.[0]?.name?.replace('ROLE_','') || 'USER'}</span></td>
+            <td>${u.roles?.some(r => r.name === 'ROLE_VENDEUR') ? `<span class="badge badge-green">${u.sellerType || 'DIVERS'}</span>` : '-'}</td>
+            <td>${new Date(u.createdAt || Date.now()).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-sm btn-secondary" onclick="confirmDeleteUser(${u.id}, '${u.username}')" style="color:var(--error); border-color:var(--error);">${icon('trash')} Supprimer</button>
+            </td>
+          </tr>
+        `).join('');
+
+        // Tracking Table for Admin (Simulation with first China Order)
+        const chinaOrder = allOrders.find(o => o.type === 'COMMANDE_CHINE');
+        if (chinaOrder) {
+            document.getElementById('adminTrackingList').innerHTML = `
+            <div class="card" style="padding: var(--space-xl); border-left: 3px solid var(--green);">
+                <div class="flex-between mb-lg">
+                <div>
+                    <h3 class="mb-xs text-green">N°: COMMANDE-#${chinaOrder.id}</h3>
+                    <p class="text-sm">Client: ${chinaOrder.buyer?.username || 'Inconnu'} | Article: ${chinaOrder.product?.title || 'Article'}</p>
+                </div>
+                <div>
+                    <span class="badge badge-yellow mr-sm">${getStatusLabel(chinaOrder.status)}</span>
+                </div>
+                </div>
+                
+                <div class="form-group mb-0" style="background: var(--bg-secondary); padding: var(--space-md); border-radius: var(--radius-md);">
+                <label class="form-label" style="font-size: 0.8rem;">Mettre à jour le statut</label>
+                <div class="flex gap-sm">
+                    <select class="form-select flex-1" id="statusSelect-${chinaOrder.id}">
+                    <option value="COMMANDE_CONFIRMEE">1. Commande confirmée</option>
+                    <option value="ENTREPOT_CHINE">2. Entrepôt Chine</option>
+                    <option value="EXPEDIE">3. Expédié / En transit</option>
+                    <option value="DOUANES_GABON">4. Douanes Gabon</option>
+                    <option value="LIVRE_MBSHOP">5. Livré MB Shop</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="updateOrderStatus(${chinaOrder.id})">Actualiser</button>
+                </div>
+                </div>
             </div>
-            
-            <div class="form-group mb-0" style="background: var(--bg-secondary); padding: var(--space-md); border-radius: var(--radius-md);">
-              <label class="form-label" style="font-size: 0.8rem;">Mettre à jour le statut</label>
-              <div class="flex gap-sm">
-                <select class="form-select flex-1">
-                  <option value="1">1. Commande confirmée</option>
-                  <option value="2">2. Entrepôt Chine (Actuel)</option>
-                  <option value="3">3. Expédié / En transit</option>
-                  <option value="4">4. Douanes Gabon</option>
-                  <option value="5">5. Livré MB Shop</option>
-                </select>
-                <button class="btn btn-primary" onclick="showToast('Statut mis à jour', 'success')">Actualiser</button>
-              </div>
-            </div>
-          </div>
-        `;
+            `;
+        } else {
+            document.getElementById('adminTrackingList').innerHTML = '<p class="text-muted">Aucune commande de Chine en attente.</p>';
+        }
+
+      } catch (err) {
+        console.error(err);
+        showToast('Erreur de chargement des données admin', 'error');
       }
     });
+
+    async function updateOrderStatus(orderId) {
+        const status = document.getElementById(`statusSelect-${orderId}`).value;
+        try {
+            await OrderManager.updateStatus(orderId, status);
+            showToast('Statut mis à jour avec succès', 'success');
+            location.reload();
+        } catch (err) {
+            showToast('Erreur lors de la mise à jour', 'error');
+        }
+    }
   </script>
 </body>
 </html>
