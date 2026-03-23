@@ -68,12 +68,15 @@ async function apiFetch(endpoint, options = {}) {
     const isJson = response.headers.get('content-type')?.includes('application/json');
     const data = isJson ? await response.json() : null;
     
-    if (response.status === 401 || response.status === 403) {
-      AuthManager.logout(false);
-      throw new Error('Session expirée ou non autorisée');
-    }
     if (!response.ok) {
-      throw new Error((data && data.message) ? data.message : 'Erreur API');
+      if (response.status === 401 || response.status === 403) {
+        // Si ce n'est pas une tentative de connexion, on déconnecte
+        if (!endpoint.includes('/auth/login')) {
+          AuthManager.logout(false);
+          throw new Error('Session expirée ou non autorisée');
+        }
+      }
+      throw new Error(data?.message || `Erreur ${response.status}`);
     }
     return data;
   } catch (error) {
