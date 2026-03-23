@@ -58,7 +58,7 @@
                 const otp = document.getElementById('otpCode').value;
                 
                 try {
-                    const response = await apiFetch('/api/auth/verify-otp', {
+                    const response = await apiFetch('/auth/verify-otp', {
                         method: 'POST',
                         body: JSON.stringify({ email, otp })
                     });
