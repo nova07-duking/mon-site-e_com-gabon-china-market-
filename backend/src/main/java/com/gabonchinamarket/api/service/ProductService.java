@@ -50,6 +50,7 @@ public class ProductService {
         product.setCurrency(productDetails.getCurrency());
         product.setQuantity(productDetails.getQuantity());
         product.setAvailable(productDetails.getQuantity() > 0);
+        product.setImages(productDetails.getImages());
         product.setUpdatedAt(LocalDateTime.now());
         return productRepository.save(product);
     }

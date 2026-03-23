@@ -49,4 +49,7 @@ public class Order {
     private Integer quantity = 1;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @Column(unique = true)
+    private String qrCodeToken;
 }

@@ -6,6 +6,7 @@
   <title>Tableau de bord Acheteur | GCMarket</title>
   <link rel="stylesheet" href="css/style.css">
   <script src="js/app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -158,6 +159,19 @@
     </div>
   </div>
 
+  <!-- Modal QR Code -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal" style="max-width: 400px; text-align: center;">
+      <div class="modal-header">
+        <h3>Mon Ticket de Validation</h3>
+        <button class="modal-close" onclick="closeQrModal()">&times;</button>
+      </div>
+      <div id="qrcode" style="display:flex; justify-content:center; margin-bottom: var(--space-lg); padding: 20px; background: white; border-radius: 12px;"></div>
+      <p class="text-sm text-muted mb-lg">Présentez ce QR code au vendeur lors de la remise du produit pour valider la transaction.</p>
+      <button class="btn btn-secondary" style="width: 100%;" onclick="closeQrModal()">Fermer</button>
+    </div>
+  </div>
+
   <script src="js/mock-data.js"></script>
   <script>
     function showTab(tabName) {
@@ -214,7 +228,11 @@
             <td>${o.product?.title || 'Article inconnu'}</td>
             <td style="color: var(--yellow); font-weight: 600;">${formatPrice(o.totalPrice)}</td>
             <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
-            <td><button class="btn btn-sm btn-secondary" onclick="showToast('Facture téléchargée', 'success')">Facture</button></td>
+            <td>
+              <button class="btn btn-sm btn-secondary" onclick="showToast('Facture téléchargée', 'success')">Facture</button>
+              ${o.status === 'SHIPPED' || o.status === 'CONFIRMED' ? `<button class="btn btn-sm btn-primary" onclick="confirmOrder(${o.id})">J'ai reçu</button>` : ''}
+              ${o.qrCodeToken ? `<button class="btn btn-sm btn-yellow" onclick="showQrCode('${o.qrCodeToken}')">${icon('qrCode', 'icon-sm')} Ticket QR</button>` : ''}
+            </td>
             </tr>
         `).join('');
 
@@ -259,6 +277,36 @@
           showToast('Erreur de chargement des commandes', 'error');
       }
     });
+
+    async function confirmOrder(id) {
+        if (!confirm('Voulez-vous confirmer que vous avez bien reçu ce produit ?')) return;
+        try {
+            await OrderManager.updateStatus(id, 'DELIVERED');
+            showToast('Réception confirmée ! Merci de votre confiance.', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+            showToast('Erreur lors de la confirmation', 'error');
+        }
+    }
+
+    let qrcodeInstance = null;
+    function showQrCode(token) {
+        document.getElementById('qrModal').classList.add('active');
+        const container = document.getElementById('qrcode');
+        container.innerHTML = '';
+        qrcodeInstance = new QRCode(container, {
+            text: token,
+            width: 200,
+            height: 200,
+            colorDark : "#0a0e1a",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    }
+
+    function closeQrModal() {
+        document.getElementById('qrModal').classList.remove('active');
+    }
   </script>
 </body>
 </html>

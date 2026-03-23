@@ -78,13 +78,27 @@
 
       document.getElementById('productDetailContainer').innerHTML = `
         <div class="grid grid-2" style="gap: var(--space-2xl);">
-          <div style="position: relative; border-radius: var(--radius-xl); overflow: hidden; height: 500px;">
-            <img src="${product.image}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover;">
-            ${product.isMbShop ? `<span class="badge badge-mbshop" style="position: absolute; top: 16px; left: 16px; font-size: 0.9rem; padding: 6px 16px; z-index: 2;">${icon('store')} Exclusivité MB Shop</span>` : ''}
-            <span class="badge ${isLocation ? 'badge-blue' : 'badge-green'}" style="position: absolute; top: 16px; right: 16px; font-size: 0.9rem; padding: 6px 16px; z-index: 2;">
-              ${isLocation ? icon('house') + ' Location' : icon('tag') + ' Vente'}
-            </span>
-            ${isUnavailable ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1;"><span class="badge badge-red" style="font-size:1.2rem;padding:12px 24px;">${icon('alert')} RUPTURE DE STOCK</span></div>` : ''}
+          <div>
+            <div id="mainImageContainer" style="position: relative; border-radius: var(--radius-xl); overflow: hidden; height: 500px; background: var(--bg-glass); margin-bottom: var(--space-md);">
+              <img id="mainProductImage" src="${product.image}" alt="${product.title}" style="width: 100%; height: 100%; object-fit: contain;">
+              ${product.isMbShop ? `<span class="badge badge-mbshop" style="position: absolute; top: 16px; left: 16px; font-size: 0.9rem; padding: 6px 16px; z-index: 2;">${icon('store')} Exclusivité MB Shop</span>` : ''}
+              <span class="badge ${isLocation ? 'badge-blue' : 'badge-green'}" style="position: absolute; top: 16px; right: 16px; font-size: 0.9rem; padding: 6px 16px; z-index: 2;">
+                ${isLocation ? icon('house') + ' Location' : icon('tag') + ' Vente'}
+              </span>
+              ${isUnavailable ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1;"><span class="badge badge-red" style="font-size:1.2rem;padding:12px 24px;">${icon('alert')} RUPTURE DE STOCK</span></div>` : ''}
+            </div>
+            
+            ${product.images && product.images.length > 1 ? `
+              <div id="thumbnailsGallery" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+                ${product.images.map((img, idx) => `
+                  <div class="thumbnail-item ${idx === 0 ? 'active' : ''}" 
+                       style="width: 80px; height: 80px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; overflow: hidden; flex-shrink: 0;"
+                       onclick="switchMainImage(this, '${img}')">
+                    <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
           </div>
           
           <div>
@@ -129,7 +143,7 @@
             <div style="display: flex; gap: var(--space-md);">
               ${isUnavailable ? 
                 `<button class="btn btn-lg disabled" style="flex: 2; background: var(--bg-glass);" disabled>${icon('x')} Produit Indisponible</button>` :
-                `<button class="btn btn-primary btn-lg btn-buy" style="flex: 2;" onclick="showToast('Ajouté au panier !', 'success')">
+                `<button class="btn btn-primary btn-lg btn-buy" style="flex: 2;" onclick="CartManager.add(currentProduct)">
                   ${isLocation ? icon('house') + ' Demander la location' : icon('cart') + ' Ajouter au panier'}
                  </button>`
               }
@@ -156,12 +170,23 @@
       setTimeout(() => AuthManager.updateUI(), 50);
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function switchMainImage(el, src) {
+      document.getElementById('mainProductImage').src = src;
+      document.querySelectorAll('.thumbnail-item').forEach(t => t.style.borderColor = 'transparent');
+      el.style.borderColor = 'var(--primary)';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
       const productId = parseInt(getUrlParam('id'), 10);
-      const product = MOCK_PRODUCTS.find(p => p.id === productId);
+      if (!productId) return;
       
-      // Simulate network
-      setTimeout(() => renderProduct(product), 400);
+      try {
+        const product = await ProductManager.getById(productId);
+        renderProduct(product);
+      } catch (err) {
+        console.error(err);
+        renderProduct(null);
+      }
     });
   </script>
 </body>

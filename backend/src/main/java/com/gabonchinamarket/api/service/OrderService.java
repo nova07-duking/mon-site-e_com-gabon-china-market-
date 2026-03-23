@@ -54,6 +54,7 @@ public class OrderService {
         order.setTotalPrice(product.getPrice() * order.getQuantity());
         order.setStatus(OrderStatus.PENDING);
         order.setCreatedAt(LocalDateTime.now());
+        order.setQrCodeToken(java.util.UUID.randomUUID().toString());
         
         Order savedOrder = orderRepository.save(order);
         
@@ -69,6 +70,19 @@ public class OrderService {
     public Order updateOrderStatus(Long id, OrderStatus status) {
         Order order = getOrderById(id);
         order.setStatus(status);
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public Order validateOrderByQrCode(String token, Long sellerId) {
+        Order order = orderRepository.findByQrCodeToken(token)
+            .orElseThrow(() -> new RuntimeException("Code QR invalide ou commande non trouvée."));
+        
+        if (!order.getProduct().getSeller().getId().equals(sellerId)) {
+            throw new RuntimeException("Vous n'êtes pas autorisé à valider cette commande.");
+        }
+        
+        order.setStatus(OrderStatus.DELIVERED);
         return orderRepository.save(order);
     }
 }

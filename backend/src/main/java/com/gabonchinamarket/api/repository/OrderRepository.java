@@ -13,4 +13,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByProductId(Long productId);
     List<Order> findByType(OrderType type);
     List<Order> findByProductSellerId(Long sellerId);
+    java.util.Optional<Order> findByQrCodeToken(String qrCodeToken);
 }

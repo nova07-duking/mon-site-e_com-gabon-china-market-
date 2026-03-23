@@ -6,6 +6,7 @@
   <title>Tableau de bord Vendeur | GCMarket</title>
   <link rel="stylesheet" href="css/style.css">
   <script src="js/app.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -95,6 +96,12 @@
 
       <!-- Tab: Products -->
       <div id="tab-products" class="tab-content hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--space-xl);">
+          <h2 style="margin:0;"><script>document.write(ICONS.shoppingBag)</script> Mes ventes</h2>
+          <button class="btn btn-yellow" onclick="showScanner()">
+            <script>document.write(ICONS.qrCode)</script> Scanner QR Client
+          </button>
+        </div>
         <div class="flex-between mb-xl">
           <h2><script>document.write(ICONS.box)</script> Mes Annonces</h2>
           <button class="btn btn-primary btn-sm" onclick="showTab('add-product')"><script>document.write(ICONS.plus)</script> Ajouter une annonce</button>
@@ -120,16 +127,16 @@
             <div class="grid grid-2">
               <div class="form-group">
                 <label class="form-label">Titre de l'annonce</label>
-                <input type="text" class="form-input" required placeholder="Ex: Toyota RAV4 2021">
+                <input type="text" id="addTitle" class="form-input" required placeholder="Ex: Toyota RAV4 2021">
               </div>
               <div class="form-group">
                 <label class="form-label">Prix (FCFA)</label>
-                <input type="number" class="form-input" required placeholder="15000000">
+                <input type="number" id="addPrice" class="form-input" required placeholder="15000000">
               </div>
               
               <div class="form-group">
                 <label class="form-label">Type de transaction</label>
-                <select class="form-select">
+                <select class="form-select" id="addTransactionMode">
                   <option value="vente">Vente</option>
                   <option value="location">Location</option>
                 </select>
@@ -163,17 +170,17 @@
                 </select>
               </div>
               <div class="form-group" style="grid-column: span 2;">
-                <label class="form-label">Image du bien (depuis vos dossiers)</label>
-                <input type="file" id="productImageFile" class="form-input" accept="image/*" style="padding: 10px;">
-                <div id="imagePreview" style="margin-top: 10px; display: none;">
-                  <img src="" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                <label class="form-label">Photos du produit (Plusieurs choix possibles)</label>
+                <input type="file" id="productImageFile" class="form-input" accept="image/*" multiple style="padding: 10px;">
+                <div id="imagePreviewContainer" style="display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; padding-bottom: 5px;">
+                  <!-- Previews will be added here -->
                 </div>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Description détaillée</label>
-              <textarea class="form-textarea" required placeholder="Décrivez votre produit..."></textarea>
+              <textarea id="addDescription" class="form-textarea" required placeholder="Décrivez votre produit..."></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%;">Publier l'annonce</button>
@@ -201,6 +208,19 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Modal Scanner QR -->
+  <div class="modal-overlay" id="scannerModal">
+    <div class="modal" style="max-width: 500px; text-align: center;">
+      <div class="modal-header">
+        <h3>Scanner un Ticket QR</h3>
+        <button class="modal-close" onclick="closeScanner()">&times;</button>
+      </div>
+      <div id="reader" style="width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: var(--space-lg);"></div>
+      <div id="scannerResult" class="text-sm mb-lg" style="min-height: 20px;">Placez le QR code face à la caméra</div>
+      <button class="btn btn-secondary" style="width: 100%;" onclick="closeScanner()">Annuler</button>
     </div>
   </div>
 
@@ -288,8 +308,17 @@
               <td>${new Date(o.createdAt).toLocaleDateString()}</td>
               <td>${formatPrice(o.totalPrice)}</td>
               <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
+              <td>
+                <select class="form-select btn-sm" onchange="updateOrderStatus(${o.id}, this.value)" style="width: auto; padding: 2px 10px;">
+                  <option value="" disabled selected>Changer statut</option>
+                  <option value="CONFIRMED">Confirmer</option>
+                  <option value="SHIPPED">Expédier</option>
+                  <option value="DELIVERED">Livrer / Récupéré</option>
+                  <option value="CANCELLED">Annuler</option>
+                </select>
+              </td>
             </tr>
-        `).join('') : '<tr><td colspan="6" class="text-center text-muted">Aucune vente enregistrée.</td></tr>';
+        `).join('') : '<tr><td colspan="7" class="text-center text-muted">Aucune vente enregistrée.</td></tr>';
 
       } catch (err) {
         console.error("Erreur de chargement du dashboard:", err);
@@ -297,17 +326,89 @@
       }
     });
 
-    // Aperçu de l'image
+    async function updateOrderStatus(id, status) {
+        try {
+            await OrderManager.updateStatus(id, status);
+            showToast('Statut mis à jour', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } catch (err) {
+            showToast('Erreur lors de la mise à jour', 'error');
+        }
+    }
+
+    let html5QrCode = null;
+    function showScanner() {
+        document.getElementById('scannerModal').classList.add('active');
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+        
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            config,
+            async (decodedText) => {
+                await onScanSuccess(decodedText);
+            },
+            (errorMessage) => {
+                // Erreurs de scan classiques ignorées
+            }
+        ).catch(err => {
+            console.error(err);
+            document.getElementById('scannerResult').textContent = "Erreur: Caméra non accessible.";
+            document.getElementById('scannerResult').style.color = "var(--error)";
+        });
+    }
+
+    async function onScanSuccess(decodedText) {
+        if (html5QrCode) {
+            await html5QrCode.stop();
+            html5QrCode = null;
+        }
+        
+        document.getElementById('scannerResult').textContent = "Validation en cours...";
+        document.getElementById('scannerResult').style.color = "var(--yellow)";
+
+        try {
+            const user = AuthManager.currentUser;
+            await OrderManager.validateQr(decodedText, user.id);
+            showToast('Vente validée et confirmée !', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+            console.error(err);
+            showToast('Erreur: Code QR invalide ou non autorisé', 'error');
+            document.getElementById('scannerModal').classList.remove('active');
+        }
+    }
+
+    function closeScanner() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                html5QrCode = null;
+                document.getElementById('scannerModal').classList.remove('active');
+            }).catch(() => {
+                document.getElementById('scannerModal').classList.remove('active');
+            });
+        } else {
+            document.getElementById('scannerModal').classList.remove('active');
+        }
+    }
+
+    // Aperçu multi-images
+
     document.getElementById('productImageFile')?.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('imagePreview');
-                preview.style.display = 'block';
-                preview.querySelector('img').src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+        const files = e.target.files;
+        const container = document.getElementById('imagePreviewContainer');
+        container.innerHTML = '';
+        if (files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.style.width = '100px'; div.style.height = '100px'; div.style.borderRadius = '8px'; div.style.overflow = 'hidden'; div.style.flexShrink = '0';
+                    div.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    container.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
         }
     });
 
@@ -317,30 +418,40 @@
         const user = AuthManager.currentUser;
         
         const fileInput = document.getElementById('productImageFile');
-        let imageData = 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400'; // Fallback
+        const imagesList = [];
         
-        if (fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            imageData = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(file);
-            });
+        if (fileInput.files && fileInput.files.length > 0) {
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                const base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                imagesList.push(base64);
+            }
         }
 
+        const mainImage = imagesList.length > 0 ? imagesList[0] : 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400';
+
         const formData = {
-            title: e.target.querySelector('input[type="text"]').value,
-            price: parseFloat(e.target.querySelector('input[type="number"]').value),
+            title: document.getElementById('addTitle').value,
+            price: parseFloat(document.getElementById('addPrice').value),
             promotionPrice: document.getElementById('addPromoPrice').value ? parseFloat(document.getElementById('addPromoPrice').value) : null,
             size: document.getElementById('addSize').value || null,
             currency: document.getElementById('addCurrency').value,
-            mode: e.target.querySelector('.form-select').value.toUpperCase(),
+            mode: document.getElementById('addTransactionMode').value.toUpperCase(),
             category: document.getElementById('addCategorySelect').value,
-            description: e.target.querySelector('textarea').value,
-            type: user.sellerType === 'vehicule' ? 'VEHICULE' : (user.sellerType === 'immo' ? 'MAISON' : 'DIVERS'),
-            seller: { id: user.id },
-            image: imageData
+            description: document.getElementById('addDescription').value,
+            type: user.sellerType === 'VEHICULE' ? 'VEHICULE' : (user.sellerType === 'IMMO' ? 'MAISON' : 'DIVERS'),
+            seller: { id: parseInt(user.id) },
+            quantity: 1,
+            isMbShop: false,
+            image: mainImage,
+            images: imagesList
         };
+        
+        console.log('Sending Product Payload:', formData);
 
         try {
             await ProductManager.create(formData);

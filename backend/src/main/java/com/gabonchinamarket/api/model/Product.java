@@ -16,6 +16,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
 
 @Entity
 @Table(name = "products")
@@ -49,6 +53,11 @@ public class Product {
     
     @Column(columnDefinition = "LONGTEXT")
     private String image;
+    
+    @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_data", columnDefinition = "LONGTEXT")
+    private List<String> images = new ArrayList<>();
     
     private Boolean available = true;
     

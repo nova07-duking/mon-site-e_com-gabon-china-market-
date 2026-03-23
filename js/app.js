@@ -95,6 +95,7 @@ const AuthManager = {
       this.currentUser = JSON.parse(saved);
     }
     this.updateUI();
+    CartManager.updateBadge(); // Initialisation du badge au chargement
   },
 
   async login(username, password) {
@@ -111,7 +112,8 @@ const AuthManager = {
       username: data.username,
       email: data.email,
       role: primaryRole,
-      roles: data.roles
+      roles: data.roles,
+      sellerType: data.sellerType
     };
     
     localStorage.setItem('gcm_user', JSON.stringify(this.currentUser));
@@ -143,7 +145,10 @@ const AuthManager = {
   },
 
   isLoggedIn()  { return this.currentUser !== null; },
-  getRole()     { return this.currentUser?.role || 'VISITEUR'; },
+  getRole()     { 
+    if (!this.currentUser) return 'VISITEUR';
+    return this.currentUser.role || 'VISITEUR'; 
+  },
   hasRole(role) { return this.getRole() === role; },
   canBuy()      { return this.hasRole('ACHETEUR') || this.hasRole('ADMIN'); },
   canSell()     { return this.hasRole('VENDEUR') || this.hasRole('ADMIN'); },
@@ -157,6 +162,10 @@ const AuthManager = {
       const dashboardLink = this.getDashboardLink();
       const unreadCount = NotificationManager?.getUnreadCount ? NotificationManager.getUnreadCount() : 0;
       navActions.innerHTML = `
+        <a href="cart.html" class="notif-btn" aria-label="Panier" style="display:flex; align-items:center; justify-content:center;">
+          ${icon('shoppingCart')}
+          <span class="cart-badge" style="display:none;">0</span>
+        </a>
         <div class="notif-wrapper">
           <button class="notif-btn" onclick="NotificationManager.toggle()" aria-label="Notifications">
             ${icon('bell')}
@@ -173,6 +182,10 @@ const AuthManager = {
       `;
     } else {
       navActions.innerHTML = `
+        <a href="cart.html" class="notif-btn" aria-label="Panier" style="display:flex; align-items:center; justify-content:center;">
+          ${icon('shoppingCart')}
+          <span class="cart-badge" style="display:none;">0</span>
+        </a>
         <a href="login.html" class="btn btn-secondary btn-sm">${icon('login')} Connexion</a>
         <a href="register.html" class="btn btn-primary btn-sm">${icon('user')} Inscription</a>
       `;
@@ -216,6 +229,10 @@ const ProductManager = {
     return await apiFetch(`/products/seller/${sellerId}`);
   },
 
+  async getById(productId) {
+    return await apiFetch(`/products/${productId}`);
+  },
+
   async create(productData) {
     return await apiFetch('/products', {
       method: 'POST',
@@ -255,6 +272,73 @@ const OrderManager = {
     return await apiFetch(`/orders/${orderId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status })
+    });
+  },
+
+  async create(orderData) {
+    return await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData)
+    });
+  },
+
+  async validateQr(token, sellerId) {
+    return await apiFetch(`/orders/validate-qr/${token}?sellerId=${sellerId}`, {
+      method: 'PUT'
+    });
+  }
+};
+
+// ── Gestion du Panier (Local) ──
+const CartManager = {
+  get() {
+    const saved = localStorage.getItem('gcm_cart');
+    return saved ? JSON.parse(saved) : [];
+  },
+
+  add(product, quantity = 1) {
+    let cart = this.get();
+    const existing = cart.find(item => item.id === product.id);
+    if (existing) {
+      existing.quantity += quantity;
+    } else {
+      cart.push({
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        image: product.image,
+        currency: product.currency || 'FCFA',
+        quantity: quantity,
+        sellerId: product.seller?.id || product.sellerId
+      });
+    }
+    this.save(cart);
+    this.updateBadge();
+    showToast('Article ajouté au panier', 'success');
+  },
+
+  remove(productId) {
+    let cart = this.get();
+    cart = cart.filter(item => item.id !== productId);
+    this.save(cart);
+    this.updateBadge();
+  },
+
+  clear() {
+    localStorage.removeItem('gcm_cart');
+    this.updateBadge();
+  },
+
+  save(cart) {
+    localStorage.setItem('gcm_cart', JSON.stringify(cart));
+  },
+
+  updateBadge() {
+    const count = this.get().reduce((acc, item) => acc + item.quantity, 0);
+    const badges = document.querySelectorAll('.cart-badge');
+    badges.forEach(b => {
+      b.textContent = count;
+      b.style.display = count > 0 ? 'flex' : 'none';
     });
   }
 };
@@ -549,6 +633,7 @@ function createProductCard(product) {
       <div class="card-img-wrapper">
         <img src="${product.image}" alt="${product.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600'">
         ${product.isMbShop ? `<span class="badge badge-mbshop" style="position:absolute;top:12px;left:12px;z-index:2;">${icon('store','icon-sm')} MB Shop</span>` : ''}
+        ${product.images && product.images.length > 1 ? `<span class="badge badge-secondary" style="position:absolute;bottom:12px;left:12px;z-index:2;background:rgba(0,0,0,0.6);">${icon('camera','icon-sm')} ${product.images.length} photos</span>` : ''}
         ${isUnavailable ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;"><span class="badge badge-red" style="font-size:0.85rem;padding:8px 16px;">${icon('alert','icon-sm')} Rupture de stock</span></div>` : ''}
         <span class="badge ${product.mode === 'location' ? 'badge-blue' : 'badge-green'}" style="position:absolute;top:12px;right:12px;z-index:2;">
           ${product.mode === 'location' ? icon('house','icon-sm') + ' Location' : icon('tag','icon-sm') + ' Vente'}

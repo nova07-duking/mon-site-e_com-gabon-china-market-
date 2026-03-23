@@ -371,6 +371,26 @@ p { color: var(--text-secondary); }
 .notif-dropdown.open { display: block; }
 .notif-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--border-glass); }
 .notif-header h4 { font-size: 0.95rem; }
+
+/* ── Cart Badge ── */
+.cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--yellow);
+  color: var(--text-inverse);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(252,209,22,0.4);
+}
+
 .notif-item { display: flex; gap: var(--space-md); padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--border-glass); transition: background var(--transition-fast); cursor: pointer; }
 .notif-item:hover { background: var(--bg-glass); }
 .notif-item.unread { background: rgba(0,150,57,0.05); }

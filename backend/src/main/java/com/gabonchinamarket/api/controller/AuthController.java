@@ -73,7 +73,8 @@ public class AuthController {
                                                      userDetails.getId(), 
                                                      userDetails.getUsername(), 
                                                      userDetails.getEmail(), 
-                                                     roles));
+                                                     roles,
+                                                     userDetails.getSellerType()));
         } catch (Exception e) {
             return ResponseEntity.status(401).body(new MessageResponse("Erreur : Identifiants incorrects ou compte non vérifié."));
         }
@@ -281,13 +282,15 @@ class JwtResponse {
     private String username;
     private String email;
     private List<String> roles;
+    private String sellerType;
 
-    public JwtResponse(String accessToken, Long id, String username, String email, List<String> roles) {
+    public JwtResponse(String accessToken, Long id, String username, String email, List<String> roles, String sellerType) {
         this.token = accessToken;
         this.id = id;
         this.username = username;
         this.email = email;
         this.roles = roles;
+        this.sellerType = sellerType;
     }
 }
 

@@ -142,11 +142,27 @@ function formatPrice(price) {
 }
 
 function getStatusColor(status) {
-  const map = { delivered: 'badge-green', active: 'badge-blue', shipped: 'badge-yellow', pending: 'badge-yellow', cancelled: 'badge-red' };
-  return map[status] || 'badge-blue';
+  const map = { 
+    DELIVERED: 'badge-green', 
+    ACTIVE: 'badge-blue', 
+    SHIPPED: 'badge-yellow', 
+    PENDING: 'badge-yellow', 
+    CONFIRMED: 'badge-blue',
+    PICKED_UP: 'badge-green',
+    CANCELLED: 'badge-red' 
+  };
+  return map[status] || map[status.toUpperCase()] || 'badge-blue';
 }
 
 function getStatusLabel(status) {
-  const map = { delivered: 'Livré', active: 'En cours', shipped: 'Expédié', pending: 'En attente', cancelled: 'Annulé' };
-  return map[status] || status;
+  const map = { 
+    DELIVERED: 'Vendu / Livré', 
+    ACTIVE: 'En cours', 
+    SHIPPED: 'En cours de livraison', 
+    PENDING: 'En attente', 
+    CONFIRMED: 'Confirmé',
+    PICKED_UP: 'Récupéré',
+    CANCELLED: 'Annulé' 
+  };
+  return map[status] || map[status.toUpperCase()] || status;
 }

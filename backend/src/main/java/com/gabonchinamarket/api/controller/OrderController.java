@@ -48,6 +48,11 @@ public class OrderController {
         // Protégé par le rôle Admin/Vendeur
         return ResponseEntity.ok(orderService.updateOrderStatus(id, request.getStatus()));
     }
+
+    @PutMapping("/validate-qr/{token}")
+    public ResponseEntity<Order> validateOrderQr(@PathVariable String token, @RequestParam Long sellerId) {
+        return ResponseEntity.ok(orderService.validateOrderByQrCode(token, sellerId));
+    }
     
     // Classe DTO pour le statut de commande
     static class OrderStatusRequest {

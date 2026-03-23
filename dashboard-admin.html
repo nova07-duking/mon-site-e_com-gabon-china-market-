@@ -169,11 +169,11 @@
             <div class="grid grid-2">
               <div class="form-group">
                 <label class="form-label">Nom du produit</label>
-                <input type="text" class="form-input" required placeholder="Ex: Climatiseur Split 1.5 CV">
+                <input type="text" id="adminTitle" class="form-input" required placeholder="Ex: Climatiseur Split 1.5 CV">
               </div>
               <div class="form-group">
                 <label class="form-label">Prix de base</label>
-                <input type="number" class="form-input" required placeholder="250000">
+                <input type="number" id="adminPrice" class="form-input" required placeholder="250000">
               </div>
 
               <div class="form-group">
@@ -207,17 +207,17 @@
               </div>
 
               <div class="form-group" style="grid-column: span 2;">
-                <label class="form-label">Image du produit</label>
-                <input type="file" id="adminProductImageFile" class="form-input" accept="image/*" style="padding:10px;">
-                <div id="adminImagePreview" style="margin-top: 10px; display: none;">
-                  <img src="" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                <label class="form-label">Photos du produit MB Shop (Plusieurs possibles)</label>
+                <input type="file" id="adminProductImageFile" class="form-input" accept="image/*" multiple style="padding:10px;">
+                <div id="adminImagePreviewContainer" style="display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; padding-bottom: 5px;">
+                  <!-- Previews will be added here -->
                 </div>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Description MB Shop</label>
-              <textarea class="form-textarea" required placeholder="Détails du produit disponible en boutique..."></textarea>
+              <textarea id="adminDescription" class="form-textarea" required placeholder="Détails du produit disponible en boutique..."></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%;">Enregistrer l'article MB Shop</button>
@@ -247,6 +247,25 @@
         <button class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
         <button class="btn btn-danger" onclick="confirmDelete()">Supprimer définitivement</button>
       </div>
+    </div>
+    
+    <!-- Tab: MB Shop Orders (Added) -->
+    <div id="tab-mborders" class="tab-content hidden">
+        <h2 class="mb-xl">${icon('package')} Commandes MB Shop</h2>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Client</th>
+                        <th>Article</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="adminMbOrdersTable"></tbody>
+            </table>
+        </div>
     </div>
   </div>
 
@@ -343,11 +362,10 @@
                 <label class="form-label" style="font-size: 0.8rem;">Mettre à jour le statut</label>
                 <div class="flex gap-sm">
                     <select class="form-select flex-1" id="statusSelect-${chinaOrder.id}">
-                    <option value="COMMANDE_CONFIRMEE">1. Commande confirmée</option>
-                    <option value="ENTREPOT_CHINE">2. Entrepôt Chine</option>
-                    <option value="EXPEDIE">3. Expédié / En transit</option>
-                    <option value="DOUANES_GABON">4. Douanes Gabon</option>
-                    <option value="LIVRE_MBSHOP">5. Livré MB Shop</option>
+                    <option value="CONFIRMED">1. Commande confirmée</option>
+                    <option value="SHIPPED">2. En transit</option>
+                    <option value="DELIVERED">3. Livré MB Shop Libreville</option>
+                    <option value="PICKED_UP">4. Récupéré par le client</option>
                     </select>
                     <button class="btn btn-primary" onclick="updateOrderStatus(${chinaOrder.id})">Actualiser</button>
                 </div>
@@ -361,18 +379,41 @@
         // MB Shop Management Table
         renderAdminMbShop(allProducts.filter(p => p.isMbShop));
 
+        // Gestion des commandes MB Shop
+        const mbOrders = allOrders.filter(o => o.product?.isMbShop);
+        const adminMbOrdersTable = document.getElementById('adminMbOrdersTable');
+        if (adminMbOrdersTable) {
+            adminMbOrdersTable.innerHTML = mbOrders.length > 0 ? mbOrders.map(o => `
+                <tr>
+                  <td>#${o.id}</td>
+                  <td>${o.buyer?.username || 'Inconnu'}</td>
+                  <td>${o.product?.title}</td>
+                  <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
+                  <td>
+                    <select class="form-select btn-sm" onchange="updateOrderStatus(${o.id}, this, true)" style="width: auto; padding: 2px 8px;">
+                      <option value="" disabled selected>Changer</option>
+                      <option value="CONFIRMED">Confirmer</option>
+                      <option value="DELIVERED">Livré / Prêt</option>
+                      <option value="PICKED_UP">Récupéré</option>
+                      <option value="CANCELLED">Annuler</option>
+                    </select>
+                  </td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="text-center text-muted">Aucune commande MB Shop.</td></tr>';
+        }
+
       } catch (err) {
         console.error(err);
         showToast('Erreur de chargement des données admin', 'error');
       }
     });
 
-    async function updateOrderStatus(orderId) {
-        const status = document.getElementById(`statusSelect-${orderId}`).value;
+    async function updateOrderStatus(orderId, selectEl = null, reload = false) {
+        const status = selectEl ? selectEl.value : document.getElementById(`statusSelect-${orderId}`).value;
         try {
             await OrderManager.updateStatus(orderId, status);
             showToast('Statut mis à jour avec succès', 'success');
-            location.reload();
+            if (reload) setTimeout(() => location.reload(), 1000);
         } catch (err) {
             showToast('Erreur lors de la mise à jour', 'error');
         }
@@ -426,17 +467,22 @@
       }
     }
 
-    // Modal behavior for adding MB product
+    // Aperçu multi-images admin
     document.getElementById('adminProductImageFile')?.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.getElementById('adminImagePreview');
-                preview.style.display = 'block';
-                preview.querySelector('img').src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+        const files = e.target.files;
+        const container = document.getElementById('adminImagePreviewContainer');
+        container.innerHTML = '';
+        if (files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.style.width = '100px'; div.style.height = '100px'; div.style.borderRadius = '8px'; div.style.overflow = 'hidden'; div.style.flexShrink = '0';
+                    div.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    container.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
         }
     });
 
@@ -444,30 +490,40 @@
         e.preventDefault();
         const user = AuthManager.currentUser;
         const fileInput = document.getElementById('adminProductImageFile');
-        let imageData = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400';
-
-        if (fileInput.files && fileInput.files[0]) {
-            imageData = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(fileInput.files[0]);
-            });
+        const imagesList = [];
+        
+        if (fileInput.files && fileInput.files.length > 0) {
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                const base64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                imagesList.push(base64);
+            }
         }
-
+        
+        const mainImage = imagesList.length > 0 ? imagesList[0] : 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400';
+        
         const formData = {
-            title: e.target.querySelector('input[type="text"]').value,
-            price: parseFloat(e.target.querySelector('input[type="number"]').value),
+            title: document.getElementById('adminTitle').value,
+            price: parseFloat(document.getElementById('adminPrice').value),
             promotionPrice: document.getElementById('adminPromoPrice').value ? parseFloat(document.getElementById('adminPromoPrice').value) : null,
             size: document.getElementById('adminSize').value || null,
             currency: document.getElementById('adminCurrency').value,
-            description: e.target.querySelector('textarea').value,
+            description: document.getElementById('adminDescription').value,
             category: document.getElementById('adminCategorySelect').value,
             type: 'DIVERS',
             mode: 'VENTE',
             isMbShop: true,
-            seller: { id: user.id },
-            image: imageData
+            quantity: 1,
+            seller: { id: parseInt(user.id) },
+            image: mainImage,
+            images: imagesList
         };
+        
+        console.log('Sending Admin MB Product Payload:', formData);
 
         try {
             await ProductManager.create(formData);
