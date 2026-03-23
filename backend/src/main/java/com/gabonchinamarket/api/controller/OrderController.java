@@ -32,6 +32,11 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByBuyer(buyerId));
     }
 
+    @GetMapping("/seller/{sellerId}")
+    public ResponseEntity<List<Order>> getOrdersBySeller(@PathVariable Long sellerId) {
+        return ResponseEntity.ok(orderService.getOrdersBySeller(sellerId));
+    }
+
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
         // Sera protégé par Spring Security (uniquement ACHETEUR)

@@ -12,4 +12,5 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByBuyerId(Long buyerId);
     List<Order> findByProductId(Long productId);
     List<Order> findByType(OrderType type);
+    List<Order> findByProductSellerId(Long sellerId);
 }

@@ -33,6 +33,10 @@ public class OrderService {
         return orderRepository.findByBuyerId(buyerId);
     }
 
+    public List<Order> getOrdersBySeller(Long sellerId) {
+        return orderRepository.findByProductSellerId(sellerId);
+    }
+
     @Transactional
     public Order createOrder(Order order) {
         Product product = productService.getProductById(order.getProduct().getId());

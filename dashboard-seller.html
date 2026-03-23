@@ -34,6 +34,9 @@
     <aside class="sidebar">
       <div class="sidebar-menu">
         <div class="sidebar-section">Boutique</div>
+        <a href="index.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+          <span class="icon">${icon('home')}</span> Retour au site (Public)
+        </a>
         <div class="sidebar-item active" onclick="showTab('overview')">
           <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
         </div>
@@ -113,7 +116,7 @@
           <button class="btn btn-secondary btn-sm" onclick="showTab('products')">Retour aux annonces</button>
         </div>
         <div class="card" style="padding: var(--space-2xl); max-width: 800px;">
-          <form onsubmit="event.preventDefault(); showToast('Annonce publiée avec succès !', 'success'); setTimeout(()=>showTab('products'), 1500);">
+          <form id="addProductForm">
             <div class="grid grid-2">
               <div class="form-group">
                 <label class="form-label">Titre de l'annonce</label>
@@ -165,7 +168,8 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      AuthManager.init();
       if (!AuthManager.isLoggedIn() || (!AuthManager.hasRole('VENDEUR') && !AuthManager.isAdmin())) {
         window.location.href = 'login.html';
         return;
@@ -186,31 +190,73 @@
         catSelect.innerHTML = `<option value="maison">Maison/Villa</option><option value="appartement">Appartement</option><option value="terrain">Terrain</option>`;
       }
 
-      const myProducts = MOCK_PRODUCTS.filter(p => p.sellerId === user.id);
-      document.getElementById('statActiveAds').textContent = myProducts.filter(p => p.available).length;
-      document.getElementById('statSalesCount').textContent = "2"; // Mock
-      document.getElementById('statRevenue').textContent = formatPrice(myProducts.reduce((acc, p) => acc + (p.available ? p.price : 0), 0) * 0.5); // Mock
 
-      document.getElementById('sellerProductsTable').innerHTML = myProducts.map(p => `
-        <tr>
-          <td><div class="flex gap-sm align-center">
-            <img src="${p.image}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
-            <span>${p.title}</span>
-          </div></td>
-          <td style="text-transform: capitalize;">${p.category}</td>
-          <td style="color: var(--yellow); font-weight: 600;">${formatPrice(p.price)}</td>
-          <td>${p.quantity}</td>
-          <td>${p.available ? `<span class="badge badge-green">En ligne</span>` : `<span class="badge badge-red">Rupture</span>`}</td>
-          <td>
-            <button class="btn btn-secondary btn-sm"><script>document.write(ICONS.edit)</script></button>
-          </td>
-        </tr>
-      `).join('');
+      // Chargement dynamique des données
+      try {
+        const [myProducts, myOrders] = await Promise.all([
+          ProductManager.getBySeller(user.id),
+          OrderManager.getBySeller(user.id)
+        ]);
 
-      document.getElementById('sellerSalesTable').innerHTML = `
-        <tr><td>#1001</td><td>Toyota Land Cruiser V8</td><td>Jean-Pierre M.</td><td>15/02/2026</td><td>${formatPrice(25000000)}</td><td><span class="badge badge-green">Livré</span></td></tr>
-        <tr><td>#1004</td><td>Mercedes-Benz Classe C</td><td>Marie O.</td><td>18/03/2026</td><td>${formatPrice(18500000)}</td><td><span class="badge badge-blue">En cours</span></td></tr>
-      `;
+        document.getElementById('statActiveAds').textContent = myProducts.filter(p => p.available).length;
+        document.getElementById('statSalesCount').textContent = myOrders.length;
+        document.getElementById('statRevenue').textContent = formatPrice(myOrders.reduce((acc, o) => acc + o.totalPrice, 0)) + ' FCFA';
+
+        document.getElementById('sellerProductsTable').innerHTML = myProducts.map(p => `
+          <tr>
+            <td><div class="flex gap-sm align-center">
+              <img src="${p.image || 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=100'}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">
+              <span>${p.title}</span>
+            </div></td>
+            <td style="text-transform: capitalize;">${p.category}</td>
+            <td style="color: var(--yellow); font-weight: 600;">${formatPrice(p.price)}</td>
+            <td>${p.quantity}</td>
+            <td>${p.available ? `<span class="badge badge-green">En ligne</span>` : `<span class="badge badge-red">Rupture</span>`}</td>
+            <td>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Edition bientôt disponible', 'info')">${icon('edit')}</button>
+            </td>
+          </tr>
+        `).join('');
+
+        document.getElementById('sellerSalesTable').innerHTML = myOrders.length > 0 ? myOrders.map(o => `
+            <tr>
+              <td>#${o.id}</td>
+              <td>${o.product?.title || 'Article inconnu'}</td>
+              <td>${o.buyer?.username || 'Client'}</td>
+              <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+              <td>${formatPrice(o.totalPrice)}</td>
+              <td><span class="badge ${getStatusColor(o.status)}">${getStatusLabel(o.status)}</span></td>
+            </tr>
+        `).join('') : '<tr><td colspan="6" class="text-center text-muted">Aucune vente enregistrée.</td></tr>';
+
+      } catch (err) {
+        console.error("Erreur de chargement du dashboard:", err);
+        showToast("Impossible de charger certaines données", "error");
+      }
+    });
+
+    // Gestion de l'ajout de produit
+    document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = AuthManager.currentUser;
+        const formData = {
+            title: e.target.querySelector('input[type="text"]').value,
+            price: parseFloat(e.target.querySelector('input[type="number"]').value),
+            mode: e.target.querySelector('.form-select').value.toUpperCase(),
+            category: document.getElementById('addCategorySelect').value,
+            description: e.target.querySelector('textarea').value,
+            type: user.sellerType === 'vehicule' ? 'VEHICULE' : (user.sellerType === 'immo' ? 'MAISON' : 'DIVERS'),
+            seller: { id: user.id },
+            image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=400' // Placeholder
+        };
+
+        try {
+            await ProductManager.create(formData);
+            showToast('Annonce publiée avec succès !', 'success');
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (error) {
+            showToast('Erreur lors de la publication', 'error');
+        }
     });
   </script>
 </body>

@@ -33,6 +33,9 @@
     <aside class="sidebar">
       <div class="sidebar-menu">
         <div class="sidebar-section">Plateforme</div>
+        <a href="index.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+          <span class="icon">${icon('home')}</span> Retour au site (Public)
+        </a>
         <div class="sidebar-item active" onclick="showTab('overview')">
           <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
         </div>
@@ -198,6 +201,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      AuthManager.init();
       if (!AuthManager.isLoggedIn() || !AuthManager.isAdmin()) {
         window.location.href = 'login.html';
         return;
@@ -228,7 +232,7 @@
           <td>${u.role === 'VENDEUR' ? `<span class="badge badge-green">${u.sellerType === 'vehicule' ? 'Véhicule' : 'Immo'}</span>` : '-'}</td>
           <td>${u.joinDate}</td>
           <td>
-            <button class="btn btn-sm btn-secondary" onclick="confirmDeleteUser(${u.id}, '${u.username}')" style="color:var(--error); border-color:var(--error);"><script>document.write(ICONS.trash)</script> Supprimer</button>
+            <button class="btn btn-sm btn-secondary" onclick="confirmDeleteUser(${u.id}, '${u.username}')" style="color:var(--error); border-color:var(--error);">${icon('trash')} Supprimer</button>
           </td>
         </tr>
       `).join('');

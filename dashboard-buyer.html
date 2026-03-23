@@ -34,6 +34,9 @@
     <aside class="sidebar">
       <div class="sidebar-menu">
         <div class="sidebar-section">Mon compte</div>
+        <a href="index.html" class="sidebar-item" style="text-decoration: none; color: inherit;">
+          <span class="icon">${icon('home')}</span> Retour au site (Public)
+        </a>
         <div class="sidebar-item active" onclick="showTab('overview')">
           <span class="icon"><script>document.write(ICONS.chart)</script></span> Vue d'ensemble
         </div>
@@ -165,6 +168,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      AuthManager.init();
       if (!AuthManager.isLoggedIn() || (!AuthManager.hasRole('ACHETEUR') && !AuthManager.isAdmin())) {
         window.location.href = 'login.html';
         return;

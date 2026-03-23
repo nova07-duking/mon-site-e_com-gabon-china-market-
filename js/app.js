@@ -205,6 +205,53 @@ const AuthManager = {
   }
 };
 
+
+// ── Gestion des Produits ──
+const ProductManager = {
+  async getAll() {
+    return await apiFetch('/products');
+  },
+
+  async getBySeller(sellerId) {
+    return await apiFetch(`/products/seller/${sellerId}`);
+  },
+
+  async create(productData) {
+    return await apiFetch('/products', {
+      method: 'POST',
+      body: JSON.stringify(productData)
+    });
+  },
+
+  async delete(productId) {
+    return await apiFetch(`/products/${productId}`, {
+      method: 'DELETE'
+    });
+  }
+};
+
+// ── Gestion des Commandes ──
+const OrderManager = {
+  async getAll() {
+    return await apiFetch('/orders');
+  },
+
+  async getByBuyer(buyerId) {
+    return await apiFetch(`/orders/buyer/${buyerId}`);
+  },
+
+  async getBySeller(sellerId) {
+    return await apiFetch(`/orders/seller/${sellerId}`);
+  },
+
+  async updateStatus(orderId, status) {
+    return await apiFetch(`/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+  }
+};
+
 // ── Notification Manager ──
 const NotificationManager = {
   _notifications: null,
