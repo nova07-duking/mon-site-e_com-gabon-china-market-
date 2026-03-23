@@ -19,6 +19,9 @@ public class UserDetailsImpl implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
     private boolean enabled;
     private String sellerType;
+    
+    @JsonIgnore
+    private String password;
 
     public UserDetailsImpl(Long id, String username, String email, String password,
                            boolean enabled, String sellerType, Collection<? extends GrantedAuthority> authorities) {
